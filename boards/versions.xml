@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<tinker>
+  <release version="14.1" path="${TINKER_PATH}/boards/14.1" />
+  <release version="15.1" path="${TINKER_PATH}/boards/15.1" />
+</tinker>

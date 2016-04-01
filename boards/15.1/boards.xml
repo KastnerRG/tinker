@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<tinker>
+  <board name="de5net" version="15.1" path="${TINKER_PATH}/${BOARD_PATH)/${VERSION}/de5net/" xml="de5net.xml" />
+</tinker>

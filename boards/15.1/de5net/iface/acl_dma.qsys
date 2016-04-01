@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<system name="$${FILENAME}">
+ <component
+   name="$${FILENAME}"
+   displayName="$${FILENAME}"
+   version="1.0"
+   description="ACL DMA"
+   tags=""
+   categories="ACL BSP Components" />
+ <parameter name="bonusData"><![CDATA[bonusData 
+{
+   element $${FILENAME}
+   {
+   }
+   element address_span_extender_0
+   {
+      datum _sortIndex
+      {
+         value = "2";
+         type = "int";
+      }
+   }
+   element clk
+   {
+      datum _sortIndex
+      {
+         value = "0";
+         type = "int";
+      }
+   }
+   element address_span_extender_0.cntl
+   {
+      datum baseAddress
+      {
+         value = "112";
+         type = "String";
+      }
+   }
+   element csr
+   {
+      datum _sortIndex
+      {
+         value = "1";
+         type = "int";
+      }
+   }
+   element dma
+   {
+      datum _sortIndex
+      {
+         value = "4";
+         type = "int";
+      }
+   }
+   element dma.dma_csr
+   {
+      datum baseAddress
+      {
+         value = "0";
+         type = "String";
+      }
+   }
+   element dma.dma_descriptor
+   {
+      datum baseAddress
+      {
+         value = "32";
+         type = "String";
+      }
+   }
+   element pipe_stage_0
+   {
+      datum _sortIndex
+      {
+         value = "3";
+         type = "int";
+      }
+   }
+   element pipe_stage_m
+   {
+      datum _sortIndex
+      {
+         value = "5";
+         type = "int";
+      }
+   }
+}
+]]></parameter>
+ <parameter name="clockCrossingAdapter" value="HANDSHAKE" />
+ <parameter name="device" value="5SGXEA7N2F45C2ES" />
+ <parameter name="deviceFamily" value="Stratix V" />
+ <parameter name="deviceSpeedGrade" value="2_H2" />
+ <parameter name="fabricMode" value="QSYS" />
+ <parameter name="generateLegacySim" value="false" />
+ <parameter name="generationId" value="0" />
+ <parameter name="globalResetBus" value="false" />
+ <parameter name="hdlLanguage" value="VERILOG" />
+ <parameter name="maxAdditionalLatency" value="0" />
+ <parameter name="projectName" value="" />
+ <parameter name="sopcBorderPoints" value="false" />
+ <parameter name="systemHash" value="1" />
+ <parameter name="timeStamp" value="1371200845592" />
+ <parameter name="useTestBenchNamingPattern" value="false" />
+ <instanceParameter
+   name="BYTE_ADDR_WIDTH"
+   displayName="BYTE_ADDR_WIDTH"
+   type="integer"
+   defaultValue="0"
+   legalRanges=""
+   description="" />
+ <instanceParameter
+   name="DATA_WIDTH"
+   displayName="DATA_WIDTH"
+   type="integer"
+   defaultValue="0"
+   legalRanges=""
+   description="" />
+ <instanceParameter
+   name="BURST_SIZE"
+   displayName="BURST_SIZE"
+   type="integer"
+   defaultValue="0"
+   legalRanges=""
+   description="" />
+ <instanceScript><![CDATA[# request a specific version of the scripting API
+package require -exact qsys 12.1
+
+# Set the name of the procedure to manipulate parameters
+set_module_property COMPOSITION_CALLBACK compose
+
+proc compose {} {
+    set width [ get_parameter_value DATA_WIDTH ]
+    set burst [ get_parameter_value BURST_SIZE ]
+    set addr [ get_parameter_value BYTE_ADDR_WIDTH ]
+
+    set_instance_parameter_value pipe_stage_m DATA_WIDTH $width
+    set_instance_parameter_value pipe_stage_m MAX_BURST_SIZE $burst
+    set_instance_parameter_value pipe_stage_m ADDRESS_WIDTH $addr
+
+    set_instance_parameter_value pipe_stage_0 DATA_WIDTH $width
+    set_instance_parameter_value pipe_stage_0 MAX_BURST_SIZE $burst
+    set_instance_parameter_value pipe_stage_0 ADDRESS_WIDTH $addr
+
+    set_instance_parameter_value dma DATA_WIDTH $width
+    set_instance_parameter_value dma BURST_SIZE $burst
+    set_instance_parameter_value dma ADDR_WIDTH $addr
+
+    set_instance_parameter_value address_span_extender_0 DATA_WIDTH $width
+    set_instance_parameter_value address_span_extender_0 BURSTCOUNT_WIDTH [ expr int(log($burst)/log(2.0)) + 1 ]
+    set_instance_parameter_value address_span_extender_0 MASTER_ADDRESS_WIDTH $addr
+    set_instance_parameter_value address_span_extender_0 SLAVE_ADDRESS_WIDTH [ expr int(16 - log($width/8.0)/log(2.0))]
+
+ }]]></instanceScript>
+ <interface name="mem_export_irq_export" internal=".irq_export" />
+ <interface name="mem_export_export" internal=".export" />
+ <interface name="dma_irq" internal="dma.dma_irq" type="interrupt" dir="end" />
+ <interface name="reset" internal="clk.clk_in_reset" type="reset" dir="end" />
+ <interface name="clk" internal="clk.clk_in" type="clock" dir="end" />
+ <interface name="m" internal="pipe_stage_m.m0" type="avalon" dir="start" />
+ <interface name="csr" internal="csr.s0" type="avalon" dir="end" />
+ <interface
+   name="s_nondma"
+   internal="address_span_extender_0.windowed_slave"
+   type="avalon"
+   dir="end" />
+ <module kind="clock_source" version="13.0" enabled="1" name="clk">
+  <parameter name="clockFrequency" value="100000000" />
+  <parameter name="clockFrequencyKnown" value="true" />
+  <parameter name="inputClockFrequency" value="0" />
+  <parameter name="resetSynchronousEdges" value="DEASSERT" />
+ </module>
+ <module
+   kind="altera_avalon_mm_bridge"
+   version="13.0"
+   enabled="1"
+   name="pipe_stage_0">
+  <parameter name="DATA_WIDTH" value="512" />
+  <parameter name="SYMBOL_WIDTH" value="8" />
+  <parameter name="ADDRESS_WIDTH" value="47" />
+  <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
+  <parameter name="MAX_BURST_SIZE" value="16" />
+  <parameter name="MAX_PENDING_RESPONSES" value="16" />
+  <parameter name="LINEWRAPBURSTS" value="0" />
+  <parameter name="PIPELINE_COMMAND" value="0" />
+  <parameter name="PIPELINE_RESPONSE" value="1" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Stratix V" />
+ </module>
+ <module kind="acl_dma_core" version="1.0" enabled="1" name="dma">
+  <parameter name="AUTO_GENERATION_ID" value="0" />
+  <parameter name="AUTO_UNIQUE_ID" value="$${FILENAME}_dma" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Stratix V" />
+  <parameter name="AUTO_DEVICE" value="5SGXEA7N2F45C2ES" />
+  <parameter name="AUTO_DMA_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="AUTO_DMA_CLK_CLOCK_DOMAIN" value="1" />
+  <parameter name="AUTO_DMA_CLK_RESET_DOMAIN" value="1" />
+  <parameter name="DATA_WIDTH" value="512" />
+  <parameter name="BURST_SIZE" value="16" />
+  <parameter name="ADDR_WIDTH" value="48" />
+ </module>
+ <module
+   kind="altera_address_span_extender"
+   version="1.2"
+   enabled="1"
+   name="address_span_extender_0">
+  <parameter name="DATA_WIDTH" value="512" />
+  <parameter name="MASTER_ADDRESS_WIDTH" value="47" />
+  <parameter name="SLAVE_ADDRESS_WIDTH" value="10" />
+  <parameter name="BURSTCOUNT_WIDTH" value="1" />
+  <parameter name="SUB_WINDOW_COUNT" value="1" />
+  <parameter name="MASTER_ADDRESS_DEF" value="0" />
+  <parameter name="TERMINATE_SLAVE_PORT" value="false" />
+  <parameter name="MAX_PENDING_READS" value="16" />
+  <parameter name="AUTO_CLOCK_CLOCK_RATE" value="100000000" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Stratix V" />
+ </module>
+ <module
+   kind="altera_avalon_mm_bridge"
+   version="13.0"
+   enabled="1"
+   name="pipe_stage_m">
+  <parameter name="DATA_WIDTH" value="512" />
+  <parameter name="SYMBOL_WIDTH" value="8" />
+  <parameter name="ADDRESS_WIDTH" value="47" />
+  <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
+  <parameter name="MAX_BURST_SIZE" value="16" />
+  <parameter name="MAX_PENDING_RESPONSES" value="64" />
+  <parameter name="LINEWRAPBURSTS" value="0" />
+  <parameter name="PIPELINE_COMMAND" value="1" />
+  <parameter name="PIPELINE_RESPONSE" value="1" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Stratix V" />
+ </module>
+ <module kind="altera_avalon_mm_bridge" version="13.0" enabled="1" name="csr">
+  <parameter name="DATA_WIDTH" value="64" />
+  <parameter name="SYMBOL_WIDTH" value="8" />
+  <parameter name="ADDRESS_WIDTH" value="10" />
+  <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
+  <parameter name="MAX_BURST_SIZE" value="1" />
+  <parameter name="MAX_PENDING_RESPONSES" value="1" />
+  <parameter name="LINEWRAPBURSTS" value="0" />
+  <parameter name="PIPELINE_COMMAND" value="1" />
+  <parameter name="PIPELINE_RESPONSE" value="1" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Stratix V" />
+ </module>
+ <connection
+   kind="avalon"
+   version="13.0"
+   start="address_span_extender_0.expanded_master"
+   end="pipe_stage_0.s0">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="reset"
+   version="13.0"
+   start="clk.clk_reset"
+   end="address_span_extender_0.reset" />
+ <connection
+   kind="reset"
+   version="13.0"
+   start="clk.clk_reset"
+   end="pipe_stage_0.reset" />
+ <connection
+   kind="clock"
+   version="13.0"
+   start="clk.clk"
+   end="address_span_extender_0.clock" />
+ <connection kind="clock" version="13.0" start="clk.clk" end="pipe_stage_0.clk" />
+ <connection kind="clock" version="13.0" start="clk.clk" end="dma.dma_clk" />
+ <connection kind="clock" version="13.0" start="clk.clk" end="pipe_stage_m.clk" />
+ <connection
+   kind="avalon"
+   version="13.0"
+   start="dma.dma_write"
+   end="pipe_stage_m.s0">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="13.0"
+   start="dma.dma_read"
+   end="pipe_stage_m.s0">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="13.0"
+   start="pipe_stage_0.m0"
+   end="pipe_stage_m.s0">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection kind="reset" version="13.0" start="clk.clk_reset" end="dma.dma_reset" />
+ <connection
+   kind="reset"
+   version="13.0"
+   start="clk.clk_reset"
+   end="pipe_stage_m.reset" />
+ <connection kind="clock" version="13.0" start="clk.clk" end="csr.clk" />
+ <connection kind="reset" version="13.0" start="clk.clk_reset" end="csr.reset" />
+ <connection
+   kind="avalon"
+   version="13.0"
+   start="csr.m0"
+   end="address_span_extender_0.cntl">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0070" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection kind="avalon" version="13.0" start="csr.m0" end="dma.dma_descriptor">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0020" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection kind="avalon" version="13.0" start="csr.m0" end="dma.dma_csr">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
+ <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="0" />
+</system>

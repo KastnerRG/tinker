@@ -1,0 +1,2146 @@
+#============================================================
+# Files and basic settings
+#============================================================
+
+set_global_assignment -name FAMILY "Stratix V"
+set_global_assignment -name TOP_LEVEL_ENTITY top
+set_global_assignment -name VERILOG_INPUT_VERSION SYSTEMVERILOG_2005
+
+# Needed for partition import due to case 63038
+
+# Execute the post CAD flow
+set_global_assignment -name POST_FLOW_SCRIPT_FILE "quartus_cdb:scripts/post_flow.tcl"
+
+# Top-level Qsys system in which OpenCL kernels get added to
+#set_global_assignment -name QSYS_FILE system.qsys
+
+set_global_assignment -name SEARCH_PATH iface
+
+# Post IP SDC constraints
+
+set_global_assignment -name PRE_FLOW_SCRIPT_FILE macros.tcl
+#============================================================
+# Partitions
+#============================================================
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+
+# Iface partition
+set_global_assignment -name PARTITION_NETLIST_TYPE POST_FIT -section_id "system_acl_iface:acl_iface"
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "system_acl_iface:acl_iface"
+set_global_assignment -name PARTITION_IGNORE_SOURCE_FILE_CHANGES ON -section_id "system_acl_iface:acl_iface"
+
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name PARTITION_COLOR 39423 -section_id "system_acl_iface:acl_iface"
+
+set_global_assignment -name INCREMENTAL_COMPILATION_EXPORT_FILE acl_iface_partition.qxp
+set_global_assignment -name INCREMENTAL_COMPILATION_EXPORT_POST_SYNTH ON
+set_global_assignment -name INCREMENTAL_COMPILATION_EXPORT_POST_FIT ON
+set_global_assignment -name INCREMENTAL_COMPILATION_EXPORT_ROUTING ON
+set_global_assignment -name INCREMENTAL_COMPILATION_EXPORT_PARTITION_NAME "system_acl_iface:acl_iface"
+
+#============================================================
+# Synthesis and Fitter Fine-Tuning
+#============================================================
+set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
+set_global_assignment -name FIT_ONLY_ONE_ATTEMPT OFF
+set_global_assignment -name PLACEMENT_EFFORT_MULTIPLIER 4.0
+set_global_assignment -name ROUTER_EFFORT_MULTIPLIER 4.0
+set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
+set_global_assignment -name OPTIMIZATION_TECHNIQUE SPEED
+set_global_assignment -name ALLOW_SHIFT_REGISTER_MERGING_ACROSS_HIERARCHIES OFF
+set_global_assignment -name DISABLE_REGISTER_MERGING_ACROSS_HIERARCHIES ON
+
+set_global_assignment -name LAST_QUARTUS_VERSION 14.1.0
+
+#============================================================
+# End of original settings
+#============================================================
+set_global_assignment -name DEVICE 5SGXEA7N2F45C2
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -fall
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -fall
+set_global_assignment -name ACTIVE_SERIAL_CLOCK FREQ_100MHZ
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL TYPICAL
+set_global_assignment -name USE_CHECKSUM_AS_USERCODE ON
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name USE_CONFIGURATION_DEVICE ON
+set_global_assignment -name CRC_ERROR_OPEN_DRAIN ON
+set_global_assignment -name CVP_MODE "CORE UPDATE"
+set_global_assignment -name ENABLE_CVP_CONFDONE OFF
+
+set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
+
+set_global_assignment -name AUTO_GLOBAL_CLOCK OFF
+set_global_assignment -name AUTO_GLOBAL_REGISTER_CONTROLS OFF
+
+
+#============================================================
+# OSC
+#============================================================
+set_instance_assignment -name IO_STANDARD "2.5 V" -to OSC_50_B3B
+set_instance_assignment -name IO_STANDARD "1.8 V" -to OSC_50_B3D
+set_instance_assignment -name IO_STANDARD "1.8 V" -to OSC_50_B4A
+set_instance_assignment -name IO_STANDARD "1.8 V" -to OSC_50_B4D
+set_instance_assignment -name IO_STANDARD "1.5 V" -to OSC_50_B7A
+set_instance_assignment -name IO_STANDARD "1.5 V" -to OSC_50_B7D
+set_instance_assignment -name IO_STANDARD "1.5 V" -to OSC_50_B8A
+set_instance_assignment -name IO_STANDARD "1.8 V" -to OSC_50_B8D
+
+set_location_assignment PIN_AW35 -to OSC_50_B3B
+set_location_assignment PIN_BC28 -to OSC_50_B3D
+set_location_assignment PIN_AP10 -to OSC_50_B4A
+set_location_assignment PIN_AY18 -to OSC_50_B4D
+set_location_assignment PIN_M8 -to OSC_50_B7A
+set_location_assignment PIN_J18 -to OSC_50_B7D
+set_location_assignment PIN_R36 -to OSC_50_B8A
+set_location_assignment PIN_R25 -to OSC_50_B8D
+
+set_location_assignment PIN_AW35 -to config_clk
+set_instance_assignment -name IO_STANDARD "2.5 V" -to config_clk
+
+set_location_assignment PIN_J18 -to kernel_pll_refclk_clk
+set_instance_assignment -name IO_STANDARD "1.5 V" -to kernel_pll_refclk_clk
+
+## PCIe
+  # PCIe clk (100 MHz)
+set_location_assignment PIN_AK38 -to pcie_refclk
+set_instance_assignment -name IO_STANDARD HCSL -to pcie_refclk
+
+set_location_assignment PIN_BB43 -to pcie_rx_in0
+#set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_rx_in0
+#set_instance_assignment -name INPUT_TERMINATION "OCT 100 OHMS" -to pcie_rx_in0
+set_instance_assignment -name XCVR_RX_SD_OFF 5 -to pcie_rx_in0
+set_instance_assignment -name XCVR_RX_SD_ON 1 -to pcie_rx_in0
+set_instance_assignment -name XCVR_RX_COMMON_MODE_VOLTAGE VTT_0P70V -to pcie_rx_in0
+set_instance_assignment -name XCVR_RX_SD_THRESHOLD 4 -to pcie_rx_in0
+set_instance_assignment -name XCVR_VCCA_VOLTAGE 3_0V -to pcie_rx_in0
+
+set_location_assignment PIN_BA41 -to pcie_rx_in1
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_rx_in1
+set_instance_assignment -name INPUT_TERMINATION "OCT 100 OHMS" -to pcie_rx_in1
+set_instance_assignment -name XCVR_RX_SD_OFF 5 -to pcie_rx_in1
+set_instance_assignment -name XCVR_RX_SD_ON 1 -to pcie_rx_in1
+set_instance_assignment -name XCVR_RX_COMMON_MODE_VOLTAGE VTT_0P70V -to pcie_rx_in1
+set_instance_assignment -name XCVR_RX_SD_THRESHOLD 4 -to pcie_rx_in1
+set_instance_assignment -name XCVR_VCCA_VOLTAGE 3_0V -to pcie_rx_in1
+set_location_assignment PIN_AW41 -to pcie_rx_in2
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_rx_in2
+set_instance_assignment -name INPUT_TERMINATION "OCT 100 OHMS" -to pcie_rx_in2
+set_instance_assignment -name XCVR_RX_SD_OFF 5 -to pcie_rx_in2
+set_instance_assignment -name XCVR_RX_SD_ON 1 -to pcie_rx_in2
+set_instance_assignment -name XCVR_RX_COMMON_MODE_VOLTAGE VTT_0P70V -to pcie_rx_in2
+set_instance_assignment -name XCVR_RX_SD_THRESHOLD 4 -to pcie_rx_in2
+set_instance_assignment -name XCVR_VCCA_VOLTAGE 3_0V -to pcie_rx_in2
+set_location_assignment PIN_AY43 -to pcie_rx_in3
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_rx_in3
+set_instance_assignment -name INPUT_TERMINATION "OCT 100 OHMS" -to pcie_rx_in3
+set_instance_assignment -name XCVR_RX_SD_OFF 5 -to pcie_rx_in3
+set_instance_assignment -name XCVR_RX_SD_ON 1 -to pcie_rx_in3
+set_instance_assignment -name XCVR_RX_COMMON_MODE_VOLTAGE VTT_0P70V -to pcie_rx_in3
+set_instance_assignment -name XCVR_RX_SD_THRESHOLD 4 -to pcie_rx_in3
+set_instance_assignment -name XCVR_VCCA_VOLTAGE 3_0V -to pcie_rx_in3
+
+
+
+set_location_assignment PIN_AY39 -to pcie_tx_out0
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_tx_out0
+set_instance_assignment -name OUTPUT_TERMINATION "OCT 100 OHMS" -to pcie_tx_out0
+set_location_assignment PIN_AV39 -to pcie_tx_out1
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_tx_out1
+set_instance_assignment -name OUTPUT_TERMINATION "OCT 100 OHMS" -to pcie_tx_out1
+set_location_assignment PIN_AT39 -to pcie_tx_out2
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_tx_out2
+set_instance_assignment -name OUTPUT_TERMINATION "OCT 100 OHMS" -to pcie_tx_out2
+set_location_assignment PIN_AU41 -to pcie_tx_out3
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_tx_out3
+set_instance_assignment -name OUTPUT_TERMINATION "OCT 100 OHMS" -to pcie_tx_out3
+
+set_location_assignment PIN_AU33 -to pcie_reset_n
+set_instance_assignment -name IO_STANDARD "2.5 V" -to pcie_reset_n
+
+
+#============================================================
+# LED
+#============================================================
+set_instance_assignment -name IO_STANDARD "2.5 V" -to leds[0]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to leds[1]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to leds[2]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to leds[3]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to leds[4]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to leds[5]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to leds[6]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to leds[7]
+
+set_location_assignment PIN_AW37 -to leds[0]
+set_location_assignment PIN_AV37 -to leds[1]
+set_location_assignment PIN_BB36 -to leds[2]
+set_location_assignment PIN_BB39 -to leds[3]
+set_location_assignment PIN_AH15 -to leds[4]
+set_location_assignment PIN_AH13 -to leds[5]
+set_location_assignment PIN_AJ13 -to leds[6]
+set_location_assignment PIN_AJ14 -to leds[7]
+
+set_instance_assignment -name ENABLE_BENEFICIAL_SKEW_OPTIMIZATION_FOR_NON_GLOBAL_CLOCKS ON -to system_inst|acl_iface|ddr3a|ddr3
+set_global_assignment -name UNIPHY_SEQUENCER_DQS_CONFIG_ENABLE ON
+set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
+set_global_assignment -name UNIPHY_TEMP_VER_CODE 312314920
+set_global_assignment -name ECO_REGENERATE_REPORT ON
+
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to pcie_rx_in0
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to "pcie_rx_in1(n)"
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to pcie_rx_in1
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to "pcie_rx_in2(n)"
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to pcie_rx_in2
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to "pcie_rx_in3(n)"
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to pcie_rx_in3
+set_global_assignment -name VCCT_GXBL_USER_VOLTAGE 1.0V
+set_global_assignment -name VCCT_GXBR_USER_VOLTAGE 1.0V
+set_global_assignment -name VCCR_GXBL_USER_VOLTAGE 1.0V
+set_global_assignment -name VCCR_GXBR_USER_VOLTAGE 1.0V
+set_global_assignment -name VCCA_GXBL_USER_VOLTAGE 3.0V
+set_global_assignment -name VCCA_GXBR_USER_VOLTAGE 3.0V
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_tx_out4
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_tx_out5
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_tx_out6
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_tx_out7
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_rx_in4
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_rx_in5
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_rx_in6
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_rx_in7
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to "pcie_rx_in4(n)"
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to pcie_rx_in4
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to "pcie_rx_in5(n)"
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to pcie_rx_in5
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to "pcie_rx_in6(n)"
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to pcie_rx_in6
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to "pcie_rx_in7(n)"
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to pcie_rx_in7
+
+set_global_assignment -name PARTITION_IMPORT_FILE acl_iface_partition.qxp -section_id "system_acl_iface:acl_iface"
+set_global_assignment -name POST_MODULE_SCRIPT_FILE "quartus_cdb:scripts/post_module.tcl"
+
+set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
+set_global_assignment -name DEVICE_FILTER_PIN_COUNT 1932
+set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 2_H2
+
+set_instance_assignment -name MAX_FANOUT 4 -to system_inst|acl_iface|ddr3b|ddr3|p0|umemphy|uio_pads|wrdata_en_qr_to_hr|dataout_r[*][*]
+set_instance_assignment -name FORM_DDR_CLUSTERING_CLIQUE ON -to system_inst|acl_iface|ddr3b|ddr3|p0|umemphy|*qr_to_hr*
+set_instance_assignment -name MAX_FANOUT 4 -to system_inst|acl_iface|ddr3a|ddr3|p0|umemphy|uio_pads|wrdata_en_qr_to_hr|dataout_r[*][*]
+set_instance_assignment -name FORM_DDR_CLUSTERING_CLIQUE ON -to system_inst|acl_iface|ddr3a|ddr3|p0|umemphy|*qr_to_hr*
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_rx_in0
+set_location_assignment PIN_BB44 -to "pcie_rx_in0(n)"
+set_instance_assignment -name XCVR_VCCR_VCCT_VOLTAGE 1_0V -to "pcie_rx_in0(n)"
+set_location_assignment PIN_AN41 -to pcie_tx_out4
+set_location_assignment PIN_AN42 -to "pcie_tx_out4(n)"
+set_location_assignment PIN_AL41 -to pcie_tx_out5
+set_location_assignment PIN_AL42 -to "pcie_tx_out5(n)"
+set_location_assignment PIN_AJ41 -to pcie_tx_out6
+set_location_assignment PIN_AJ42 -to "pcie_tx_out6(n)"
+set_location_assignment PIN_AG41 -to pcie_tx_out7
+set_location_assignment PIN_AG42 -to "pcie_tx_out7(n)"
+set_location_assignment PIN_AT43 -to pcie_rx_in4
+set_location_assignment PIN_AT44 -to "pcie_rx_in4(n)"
+set_location_assignment PIN_AP43 -to pcie_rx_in5
+set_location_assignment PIN_AP44 -to "pcie_rx_in5(n)"
+set_location_assignment PIN_AM43 -to pcie_rx_in6
+set_location_assignment PIN_AM44 -to "pcie_rx_in6(n)"
+set_location_assignment PIN_AK43 -to pcie_rx_in7
+set_location_assignment PIN_AK44 -to "pcie_rx_in7(n)"
+set_global_assignment -name PARTITION_LAST_IMPORTED_FILE acl_iface_partition.qxp -section_id "system_acl_iface:acl_iface"
+
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[14]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[14]
+
+set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
+
+set_global_assignment -name ENABLE_DRC_SETTINGS OFF
+
+set_global_assignment -name SDC_FILE top.sdc
+set_global_assignment -name VERILOG_FILE top.v
+set_global_assignment -name MIF_FILE db/reconfig_map_0.mif
+set_global_assignment -name QIP_FILE system/synthesis/system.qip
+set_global_assignment -name SDC_FILE top_post.sdc
+set_global_assignment -name SEARCH_PATH megafunctions/ -tag from_archive
+set_global_assignment -name SEARCH_PATH quartus/libraries/others/maxplus2/ -tag from_archive
+set_global_assignment -name SEARCH_PATH scripts/ -tag from_archive
+set_global_assignment -name SEARCH_PATH system/synthesis/ -tag from_archive
+set_global_assignment -name SEARCH_PATH system/synthesis/submodules/ -tag from_archive
+set_global_assignment -name SEARCH_PATH system/synthesis/submodules/system_acl_iface_ddr3a_ddr3_s0_software/ -tag from_archive
+set_global_assignment -name SEARCH_PATH system/synthesis/submodules/system_acl_iface_ddr3b_ddr3_s0_software/ -tag from_archive
+
+
+set_location_assignment PIN_BA36 -to RZQ_0
+set_location_assignment PIN_AR8 -to RZQ_1
+set_location_assignment PIN_H9 -to RZQ_4
+set_location_assignment PIN_P35 -to RZQ_5
+
+#============================================================
+# DDR3A Rules
+#============================================================
+set_location_assignment PIN_P35 -to ddr3a_mem_oct_rzqin
+set_instance_assignment -name IO_STANDARD "1.5 V" -to ddr3a_mem_oct_rzqin
+
+
+set_location_assignment PIN_M39 -to ddr3a_mem_a[0]
+set_location_assignment PIN_L35 -to ddr3a_mem_a[1]
+set_location_assignment PIN_N38 -to ddr3a_mem_a[2]
+set_location_assignment PIN_L36 -to ddr3a_mem_a[3]
+set_location_assignment PIN_H36 -to ddr3a_mem_a[4]
+set_location_assignment PIN_K29 -to ddr3a_mem_a[5]
+set_location_assignment PIN_D37 -to ddr3a_mem_a[6]
+set_location_assignment PIN_K35 -to ddr3a_mem_a[7]
+set_location_assignment PIN_K32 -to ddr3a_mem_a[8]
+set_location_assignment PIN_K37 -to ddr3a_mem_a[9]
+set_location_assignment PIN_M38 -to ddr3a_mem_a[10]
+set_location_assignment PIN_C37 -to ddr3a_mem_a[11]
+set_location_assignment PIN_K36 -to ddr3a_mem_a[12]
+set_location_assignment PIN_M33 -to ddr3a_mem_a[13]
+set_location_assignment PIN_K34 -to ddr3a_mem_a[14]
+set_location_assignment PIN_B38 -to ddr3a_mem_a[15]
+set_location_assignment PIN_M37 -to ddr3a_mem_ba[0]
+set_location_assignment PIN_P39 -to ddr3a_mem_ba[1]
+set_location_assignment PIN_J36 -to ddr3a_mem_ba[2]
+set_location_assignment PIN_M36 -to ddr3a_mem_cas_n
+set_location_assignment PIN_G37 -to ddr3a_mem_ck
+set_location_assignment PIN_E36 -to ddr3a_mem_cke
+set_location_assignment PIN_F36 -to ddr3a_mem_ck_n
+set_location_assignment PIN_P36 -to ddr3a_mem_cs_n
+set_location_assignment PIN_C36 -to ddr3a_mem_dm[0]
+set_location_assignment PIN_E32 -to ddr3a_mem_dm[1]
+set_location_assignment PIN_H34 -to ddr3a_mem_dm[2]
+set_location_assignment PIN_L32 -to ddr3a_mem_dm[3]
+set_location_assignment PIN_N32 -to ddr3a_mem_dm[4]
+set_location_assignment PIN_W32 -to ddr3a_mem_dm[5]
+set_location_assignment PIN_K30 -to ddr3a_mem_dm[6]
+set_location_assignment PIN_T28 -to ddr3a_mem_dm[7]
+set_location_assignment PIN_A35 -to ddr3a_mem_dq[0]
+set_location_assignment PIN_A34 -to ddr3a_mem_dq[1]
+set_location_assignment PIN_D36 -to ddr3a_mem_dq[2]
+set_location_assignment PIN_C33 -to ddr3a_mem_dq[3]
+set_location_assignment PIN_B32 -to ddr3a_mem_dq[4]
+set_location_assignment PIN_D35 -to ddr3a_mem_dq[5]
+set_location_assignment PIN_D33 -to ddr3a_mem_dq[6]
+set_location_assignment PIN_E33 -to ddr3a_mem_dq[7]
+set_location_assignment PIN_A32 -to ddr3a_mem_dq[8]
+set_location_assignment PIN_A31 -to ddr3a_mem_dq[9]
+set_location_assignment PIN_C30 -to ddr3a_mem_dq[10]
+set_location_assignment PIN_D30 -to ddr3a_mem_dq[11]
+set_location_assignment PIN_B29 -to ddr3a_mem_dq[12]
+set_location_assignment PIN_E30 -to ddr3a_mem_dq[13]
+set_location_assignment PIN_F31 -to ddr3a_mem_dq[14]
+set_location_assignment PIN_G31 -to ddr3a_mem_dq[15]
+set_location_assignment PIN_F35 -to ddr3a_mem_dq[16]
+set_location_assignment PIN_G34 -to ddr3a_mem_dq[17]
+set_location_assignment PIN_J33 -to ddr3a_mem_dq[18]
+set_location_assignment PIN_J34 -to ddr3a_mem_dq[19]
+set_location_assignment PIN_F34 -to ddr3a_mem_dq[20]
+set_location_assignment PIN_E35 -to ddr3a_mem_dq[21]
+set_location_assignment PIN_J31 -to ddr3a_mem_dq[22]
+set_location_assignment PIN_K31 -to ddr3a_mem_dq[23]
+set_location_assignment PIN_P34 -to ddr3a_mem_dq[24]
+set_location_assignment PIN_R33 -to ddr3a_mem_dq[25]
+set_location_assignment PIN_M34 -to ddr3a_mem_dq[26]
+set_location_assignment PIN_L33 -to ddr3a_mem_dq[27]
+set_location_assignment PIN_R34 -to ddr3a_mem_dq[28]
+set_location_assignment PIN_T34 -to ddr3a_mem_dq[29]
+set_location_assignment PIN_W34 -to ddr3a_mem_dq[30]
+set_location_assignment PIN_V35 -to ddr3a_mem_dq[31]
+set_location_assignment PIN_P33 -to ddr3a_mem_dq[32]
+set_location_assignment PIN_P32 -to ddr3a_mem_dq[33]
+set_location_assignment PIN_V33 -to ddr3a_mem_dq[34]
+set_location_assignment PIN_V34 -to ddr3a_mem_dq[35]
+set_location_assignment PIN_N31 -to ddr3a_mem_dq[36]
+set_location_assignment PIN_M31 -to ddr3a_mem_dq[37]
+set_location_assignment PIN_U32 -to ddr3a_mem_dq[38]
+set_location_assignment PIN_U33 -to ddr3a_mem_dq[39]
+set_location_assignment PIN_R31 -to ddr3a_mem_dq[40]
+set_location_assignment PIN_W31 -to ddr3a_mem_dq[41]
+set_location_assignment PIN_U30 -to ddr3a_mem_dq[42]
+set_location_assignment PIN_P31 -to ddr3a_mem_dq[43]
+set_location_assignment PIN_T31 -to ddr3a_mem_dq[44]
+set_location_assignment PIN_Y32 -to ddr3a_mem_dq[45]
+set_location_assignment PIN_T29 -to ddr3a_mem_dq[46]
+set_location_assignment PIN_P30 -to ddr3a_mem_dq[47]
+set_location_assignment PIN_H32 -to ddr3a_mem_dq[48]
+set_location_assignment PIN_H31 -to ddr3a_mem_dq[49]
+set_location_assignment PIN_L30 -to ddr3a_mem_dq[50]
+set_location_assignment PIN_L29 -to ddr3a_mem_dq[51]
+set_location_assignment PIN_F32 -to ddr3a_mem_dq[52]
+set_location_assignment PIN_G32 -to ddr3a_mem_dq[53]
+set_location_assignment PIN_M30 -to ddr3a_mem_dq[54]
+set_location_assignment PIN_N29 -to ddr3a_mem_dq[55]
+set_location_assignment PIN_U29 -to ddr3a_mem_dq[56]
+set_location_assignment PIN_V28 -to ddr3a_mem_dq[57]
+set_location_assignment PIN_Y28 -to ddr3a_mem_dq[58]
+set_location_assignment PIN_W29 -to ddr3a_mem_dq[59]
+set_location_assignment PIN_V30 -to ddr3a_mem_dq[60]
+set_location_assignment PIN_V29 -to ddr3a_mem_dq[61]
+set_location_assignment PIN_W28 -to ddr3a_mem_dq[62]
+set_location_assignment PIN_Y27 -to ddr3a_mem_dq[63]
+set_location_assignment PIN_C34 -to ddr3a_mem_dqs[0]
+set_location_assignment PIN_C31 -to ddr3a_mem_dqs[1]
+set_location_assignment PIN_H35 -to ddr3a_mem_dqs[2]
+set_location_assignment PIN_U35 -to ddr3a_mem_dqs[3]
+set_location_assignment PIN_T33 -to ddr3a_mem_dqs[4]
+set_location_assignment PIN_T30 -to ddr3a_mem_dqs[5]
+set_location_assignment PIN_J30 -to ddr3a_mem_dqs[6]
+set_location_assignment PIN_Y30 -to ddr3a_mem_dqs[7]
+set_location_assignment PIN_B34 -to ddr3a_mem_dqs_n[0]
+set_location_assignment PIN_B31 -to ddr3a_mem_dqs_n[1]
+set_location_assignment PIN_G35 -to ddr3a_mem_dqs_n[2]
+set_location_assignment PIN_T35 -to ddr3a_mem_dqs_n[3]
+set_location_assignment PIN_T32 -to ddr3a_mem_dqs_n[4]
+set_location_assignment PIN_R30 -to ddr3a_mem_dqs_n[5]
+set_location_assignment PIN_H30 -to ddr3a_mem_dqs_n[6]
+set_location_assignment PIN_Y29 -to ddr3a_mem_dqs_n[7]
+set_location_assignment PIN_V36 -to ddr3a_mem_odt
+set_location_assignment PIN_P38 -to ddr3a_mem_ras_n
+set_location_assignment PIN_H33 -to ddr3a_mem_reset_n
+set_location_assignment PIN_N37 -to ddr3a_mem_we_n
+
+#============================================================
+# DDR3B Rules
+#============================================================
+set_location_assignment PIN_H9 -to ddr3b_mem_oct_rzqin
+set_instance_assignment -name IO_STANDARD "1.5 V" -to ddr3b_mem_oct_rzqin
+
+set_location_assignment PIN_G17 -to ddr3b_mem_a[0]
+set_location_assignment PIN_F17 -to ddr3b_mem_a[1]
+set_location_assignment PIN_N17 -to ddr3b_mem_a[2]
+set_location_assignment PIN_F19 -to ddr3b_mem_a[3]
+set_location_assignment PIN_N19 -to ddr3b_mem_a[4]
+set_location_assignment PIN_H16 -to ddr3b_mem_a[5]
+set_location_assignment PIN_M17 -to ddr3b_mem_a[6]
+set_location_assignment PIN_T18 -to ddr3b_mem_a[7]
+set_location_assignment PIN_H17 -to ddr3b_mem_a[8]
+set_location_assignment PIN_J19 -to ddr3b_mem_a[9]
+set_location_assignment PIN_C19 -to ddr3b_mem_a[10]
+set_location_assignment PIN_R18 -to ddr3b_mem_a[11]
+set_location_assignment PIN_K18 -to ddr3b_mem_a[12]
+set_location_assignment PIN_E18 -to ddr3b_mem_a[13]
+set_location_assignment PIN_T19 -to ddr3b_mem_a[14]
+set_location_assignment PIN_R19 -to ddr3b_mem_a[15]
+set_location_assignment PIN_C18 -to ddr3b_mem_ba[0]
+set_location_assignment PIN_G19 -to ddr3b_mem_ba[1]
+set_location_assignment PIN_M20 -to ddr3b_mem_ba[2]
+set_location_assignment PIN_A17 -to ddr3b_mem_cas_n
+set_location_assignment PIN_B16 -to ddr3b_mem_ck
+set_location_assignment PIN_P17 -to ddr3b_mem_cke
+set_location_assignment PIN_A16 -to ddr3b_mem_ck_n
+set_location_assignment PIN_B19 -to ddr3b_mem_cs_n
+set_location_assignment PIN_R15 -to ddr3b_mem_dm[0]
+set_location_assignment PIN_K15 -to ddr3b_mem_dm[1]
+set_location_assignment PIN_V12 -to ddr3b_mem_dm[2]
+set_location_assignment PIN_G10 -to ddr3b_mem_dm[3]
+set_location_assignment PIN_T12 -to ddr3b_mem_dm[4]
+set_location_assignment PIN_C16 -to ddr3b_mem_dm[5]
+set_location_assignment PIN_H15 -to ddr3b_mem_dm[6]
+set_location_assignment PIN_B11 -to ddr3b_mem_dm[7]
+set_location_assignment PIN_Y17 -to ddr3b_mem_dq[0]
+set_location_assignment PIN_W17 -to ddr3b_mem_dq[1]
+set_location_assignment PIN_V15 -to ddr3b_mem_dq[2]
+set_location_assignment PIN_T15 -to ddr3b_mem_dq[3]
+set_location_assignment PIN_V13 -to ddr3b_mem_dq[4]
+set_location_assignment PIN_V16 -to ddr3b_mem_dq[5]
+set_location_assignment PIN_W14 -to ddr3b_mem_dq[6]
+set_location_assignment PIN_U15 -to ddr3b_mem_dq[7]
+set_location_assignment PIN_T17 -to ddr3b_mem_dq[8]
+set_location_assignment PIN_T16 -to ddr3b_mem_dq[9]
+set_location_assignment PIN_R16 -to ddr3b_mem_dq[10]
+set_location_assignment PIN_P16 -to ddr3b_mem_dq[11]
+set_location_assignment PIN_N16 -to ddr3b_mem_dq[12]
+set_location_assignment PIN_M15 -to ddr3b_mem_dq[13]
+set_location_assignment PIN_M14 -to ddr3b_mem_dq[14]
+set_location_assignment PIN_L14 -to ddr3b_mem_dq[15]
+set_location_assignment PIN_T14 -to ddr3b_mem_dq[16]
+set_location_assignment PIN_U14 -to ddr3b_mem_dq[17]
+set_location_assignment PIN_U11 -to ddr3b_mem_dq[18]
+set_location_assignment PIN_T13 -to ddr3b_mem_dq[19]
+set_location_assignment PIN_U12 -to ddr3b_mem_dq[20]
+set_location_assignment PIN_R13 -to ddr3b_mem_dq[21]
+set_location_assignment PIN_P13 -to ddr3b_mem_dq[22]
+set_location_assignment PIN_N13 -to ddr3b_mem_dq[23]
+set_location_assignment PIN_K12 -to ddr3b_mem_dq[24]
+set_location_assignment PIN_J12 -to ddr3b_mem_dq[25]
+set_location_assignment PIN_J10 -to ddr3b_mem_dq[26]
+set_location_assignment PIN_H12 -to ddr3b_mem_dq[27]
+set_location_assignment PIN_N11 -to ddr3b_mem_dq[28]
+set_location_assignment PIN_M11 -to ddr3b_mem_dq[29]
+set_location_assignment PIN_H10 -to ddr3b_mem_dq[30]
+set_location_assignment PIN_H11 -to ddr3b_mem_dq[31]
+set_location_assignment PIN_T10 -to ddr3b_mem_dq[32]
+set_location_assignment PIN_R10 -to ddr3b_mem_dq[33]
+set_location_assignment PIN_M12 -to ddr3b_mem_dq[34]
+set_location_assignment PIN_L12 -to ddr3b_mem_dq[35]
+set_location_assignment PIN_V10 -to ddr3b_mem_dq[36]
+set_location_assignment PIN_V9 -to ddr3b_mem_dq[37]
+set_location_assignment PIN_R12 -to ddr3b_mem_dq[38]
+set_location_assignment PIN_P12 -to ddr3b_mem_dq[39]
+set_location_assignment PIN_D14 -to ddr3b_mem_dq[40]
+set_location_assignment PIN_C13 -to ddr3b_mem_dq[41]
+set_location_assignment PIN_B14 -to ddr3b_mem_dq[42]
+set_location_assignment PIN_B13 -to ddr3b_mem_dq[43]
+set_location_assignment PIN_E14 -to ddr3b_mem_dq[44]
+set_location_assignment PIN_F14 -to ddr3b_mem_dq[45]
+set_location_assignment PIN_A14 -to ddr3b_mem_dq[46]
+set_location_assignment PIN_A13 -to ddr3b_mem_dq[47]
+set_location_assignment PIN_K13 -to ddr3b_mem_dq[48]
+set_location_assignment PIN_K16 -to ddr3b_mem_dq[49]
+set_location_assignment PIN_H13 -to ddr3b_mem_dq[50]
+set_location_assignment PIN_H14 -to ddr3b_mem_dq[51]
+set_location_assignment PIN_J13 -to ddr3b_mem_dq[52]
+set_location_assignment PIN_J16 -to ddr3b_mem_dq[53]
+set_location_assignment PIN_G13 -to ddr3b_mem_dq[54]
+set_location_assignment PIN_F13 -to ddr3b_mem_dq[55]
+set_location_assignment PIN_D11 -to ddr3b_mem_dq[56]
+set_location_assignment PIN_C10 -to ddr3b_mem_dq[57]
+set_location_assignment PIN_A10 -to ddr3b_mem_dq[58]
+set_location_assignment PIN_B10 -to ddr3b_mem_dq[59]
+set_location_assignment PIN_G11 -to ddr3b_mem_dq[60]
+set_location_assignment PIN_F11 -to ddr3b_mem_dq[61]
+set_location_assignment PIN_E11 -to ddr3b_mem_dq[62]
+set_location_assignment PIN_E12 -to ddr3b_mem_dq[63]
+set_location_assignment PIN_Y16 -to ddr3b_mem_dqs[0]
+set_location_assignment PIN_V17 -to ddr3b_mem_dqs[1]
+set_location_assignment PIN_P14 -to ddr3b_mem_dqs[2]
+set_location_assignment PIN_K11 -to ddr3b_mem_dqs[3]
+set_location_assignment PIN_U9 -to ddr3b_mem_dqs[4]
+set_location_assignment PIN_E15 -to ddr3b_mem_dqs[5]
+set_location_assignment PIN_L15 -to ddr3b_mem_dqs[6]
+set_location_assignment PIN_D12 -to ddr3b_mem_dqs[7]
+set_location_assignment PIN_W16 -to ddr3b_mem_dqs_n[0]
+set_location_assignment PIN_U17 -to ddr3b_mem_dqs_n[1]
+set_location_assignment PIN_N14 -to ddr3b_mem_dqs_n[2]
+set_location_assignment PIN_L11 -to ddr3b_mem_dqs_n[3]
+set_location_assignment PIN_T9 -to ddr3b_mem_dqs_n[4]
+set_location_assignment PIN_D15 -to ddr3b_mem_dqs_n[5]
+set_location_assignment PIN_K14 -to ddr3b_mem_dqs_n[6]
+set_location_assignment PIN_C12 -to ddr3b_mem_dqs_n[7]
+set_location_assignment PIN_M18 -to ddr3b_mem_odt
+set_location_assignment PIN_H19 -to ddr3b_mem_ras_n
+set_location_assignment PIN_T20 -to ddr3b_mem_reset_n
+set_location_assignment PIN_D18 -to ddr3b_mem_we_n
+
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[0]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[0]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[1]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[1]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[1]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[2]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[2]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[2]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[3]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[3]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[3]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[4]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[4]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[4]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[5]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[5]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[5]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[6]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[6]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[6]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[7]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[7]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[7]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[8]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[8]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[8]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[9]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[9]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[9]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[10]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[10]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[10]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[11]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[11]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[11]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[12]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[12]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[12]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[13]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[13]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[13]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[14]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[14]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[14]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[15]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[15]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[15]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[16]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[16]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[16]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[17]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[17]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[17]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[18]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[18]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[18]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[19]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[19]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[19]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[20]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[20]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[20]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[21]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[21]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[21]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[22]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[22]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[22]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[23]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[23]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[23]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[24]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[24]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[24]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[25]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[25]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[25]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[26]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[26]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[26]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[27]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[27]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[27]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[28]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[28]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[28]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[29]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[29]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[29]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[30]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[30]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[30]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[31]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[31]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[31]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[32]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[32]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[32]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[33]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[33]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[33]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[34]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[34]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[34]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[35]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[35]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[35]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[36]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[36]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[36]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[37]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[37]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[37]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[38]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[38]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[38]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[39]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[39]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[39]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[40]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[40]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[40]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[41]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[41]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[41]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[42]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[42]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[42]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[43]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[43]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[43]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[44]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[44]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[44]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[45]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[45]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[45]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[46]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[46]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[46]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[47]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[47]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[47]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[48]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[48]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[48]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[49]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[49]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[49]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[50]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[50]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[50]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[51]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[51]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[51]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[52]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[52]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[52]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[53]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[53]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[53]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[54]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[54]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[54]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[55]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[55]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[55]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[56]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[56]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[56]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[57]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[57]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[57]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[58]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[58]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[58]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[59]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[59]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[59]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[60]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[60]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[60]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[61]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[61]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[61]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[62]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[62]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[62]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dq[63]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[63]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dq[63]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs[0]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[0]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs[1]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[1]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[1]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs[2]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[2]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[2]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs[3]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[3]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[3]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs[4]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[4]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[4]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs[5]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[5]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[5]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs[6]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[6]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[6]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs[7]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[7]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs[7]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs_n[0]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[0]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs_n[1]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[1]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[1]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs_n[2]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[2]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[2]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs_n[3]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[3]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[3]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs_n[4]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[4]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[4]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs_n[5]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[5]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[5]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs_n[6]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[6]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[6]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_dqs_n[7]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[7]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dqs_n[7]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_ck
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_ck
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3a_mem_ck_n
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_ck_n
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[0]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[10]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[10]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[11]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[11]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[12]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[12]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[13]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[13]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[14]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[1]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[2]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[3]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[3]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[4]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[4]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[5]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[5]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[6]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[6]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[7]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[7]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[8]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[8]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_a[9]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_a[9]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_ba[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_ba[0]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_ba[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_ba[1]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_ba[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_ba[2]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_cs_n
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_cs_n
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_we_n
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_we_n
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_ras_n
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_ras_n
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_cas_n
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_cas_n
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_cke
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_cke
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_odt
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_odt
+set_instance_assignment -name IO_STANDARD 1.5V -to ddr3a_mem_reset_n
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3a_mem_reset_n
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dm[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dm[0]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dm[1]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dm[1]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dm[2]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dm[2]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dm[3]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dm[3]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dm[4]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dm[4]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dm[5]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dm[5]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dm[6]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dm[6]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3a_mem_dm[7]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3a_mem_dm[7]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[0]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[0]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[1]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[1]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[1]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[2]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[2]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[2]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[3]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[3]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[3]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[4]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[4]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[4]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[5]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[5]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[5]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[6]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[6]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[6]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[7]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[7]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[7]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[8]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[8]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[8]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[9]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[9]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[9]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[10]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[10]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[10]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[11]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[11]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[11]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[12]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[12]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[12]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[13]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[13]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[13]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[14]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[14]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[14]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[15]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[15]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[15]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[16]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[16]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[16]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[17]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[17]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[17]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[18]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[18]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[18]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[19]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[19]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[19]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[20]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[20]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[20]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[21]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[21]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[21]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[22]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[22]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[22]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[23]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[23]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[23]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[24]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[24]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[24]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[25]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[25]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[25]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[26]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[26]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[26]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[27]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[27]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[27]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[28]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[28]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[28]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[29]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[29]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[29]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[30]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[30]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[30]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[31]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[31]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[31]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[32]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[32]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[32]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[33]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[33]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[33]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[34]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[34]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[34]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[35]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[35]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[35]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[36]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[36]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[36]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[37]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[37]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[37]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[38]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[38]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[38]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[39]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[39]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[39]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[40]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[40]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[40]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[41]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[41]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[41]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[42]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[42]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[42]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[43]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[43]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[43]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[44]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[44]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[44]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[45]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[45]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[45]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[46]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[46]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[46]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[47]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[47]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[47]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[48]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[48]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[48]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[49]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[49]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[49]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[50]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[50]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[50]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[51]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[51]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[51]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[52]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[52]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[52]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[53]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[53]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[53]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[54]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[54]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[54]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[55]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[55]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[55]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[56]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[56]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[56]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[57]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[57]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[57]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[58]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[58]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[58]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[59]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[59]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[59]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[60]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[60]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[60]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[61]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[61]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[61]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[62]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[62]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[62]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dq[63]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[63]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dq[63]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs[0]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[0]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs[1]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[1]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[1]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs[2]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[2]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[2]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs[3]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[3]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[3]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs[4]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[4]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[4]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs[5]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[5]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[5]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs[6]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[6]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[6]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs[7]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[7]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs[7]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs_n[0]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[0]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs_n[1]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[1]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[1]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs_n[2]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[2]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[2]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs_n[3]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[3]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[3]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs_n[4]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[4]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[4]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs_n[5]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[5]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[5]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs_n[6]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[6]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[6]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_dqs_n[7]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[7]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dqs_n[7]
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_ck
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_ck
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3b_mem_ck_n
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_ck_n
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[0]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[10]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[10]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[11]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[11]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[12]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[12]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[13]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[13]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[14]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[1]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[2]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[3]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[3]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[4]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[4]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[5]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[5]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[6]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[6]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[7]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[7]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[8]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[8]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_a[9]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_a[9]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_ba[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_ba[0]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_ba[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_ba[1]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_ba[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_ba[2]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_cs_n
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_cs_n
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_we_n
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_we_n
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_ras_n
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_ras_n
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_cas_n
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_cas_n
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_cke
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_cke
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_odt
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_odt
+set_instance_assignment -name IO_STANDARD 1.5V -to ddr3b_mem_reset_n
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to ddr3b_mem_reset_n
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dm[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dm[0]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dm[1]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dm[1]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dm[2]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dm[2]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dm[3]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dm[3]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dm[4]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dm[4]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dm[5]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dm[5]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dm[6]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dm[6]
+set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3b_mem_dm[7]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3b_mem_dm[7]
+
+
+set_instance_assignment -name BOARD_MODEL_FAR_PULLUP_R OPEN -to ddr3b_mem_reset_n
+set_instance_assignment -name BOARD_MODEL_NEAR_PULLUP_R OPEN -to ddr3b_mem_reset_n
+set_instance_assignment -name BOARD_MODEL_FAR_PULLDOWN_R OPEN -to ddr3b_mem_reset_n
+set_instance_assignment -name BOARD_MODEL_NEAR_PULLDOWN_R OPEN -to ddr3b_mem_reset_n
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[0]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[1]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[2]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[3]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[4]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[5]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[6]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[7]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[8]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[9]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[10]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[11]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[12]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[13]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[14]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[15]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[16]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[17]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[18]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[19]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[20]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[21]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[22]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[23]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[24]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[25]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[26]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[27]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[28]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[29]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[30]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[31]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[32]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[33]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[34]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[35]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[36]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[37]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[38]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[39]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[40]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[41]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[42]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[43]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[44]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[45]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[46]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[47]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[48]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[49]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[50]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[51]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[52]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[53]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[54]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[55]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[56]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[57]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[58]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[59]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[60]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[61]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[62]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dq[63]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dm[0]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dm[1]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dm[2]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dm[3]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dm[4]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dm[5]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dm[6]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dm[7]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs[0]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs[1]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs[2]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs[3]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs[4]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs[5]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs[6]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs[7]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs_n[0]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs_n[1]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs_n[2]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs_n[3]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs_n[4]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs_n[5]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs_n[6]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_dqs_n[7]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[0]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[10]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[11]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[12]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[13]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[14]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[1]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[2]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[3]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[4]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[5]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[6]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[7]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[8]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_a[9]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_ba[0]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_ba[1]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_ba[2]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_cs_n
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_we_n
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_ras_n
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_cas_n
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_cke
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_odt
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_reset_n
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_ck
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3b_mem_ck_n
+set_instance_assignment -name ENABLE_BENEFICIAL_SKEW_OPTIMIZATION_FOR_NON_GLOBAL_CLOCKS ON -to system_inst|acl_iface|ddr3b|ddr3
+set_instance_assignment -name BOARD_MODEL_FAR_PULLUP_R OPEN -to ddr3a_mem_reset_n
+set_instance_assignment -name BOARD_MODEL_NEAR_PULLUP_R OPEN -to ddr3a_mem_reset_n
+set_instance_assignment -name BOARD_MODEL_FAR_PULLDOWN_R OPEN -to ddr3a_mem_reset_n
+set_instance_assignment -name BOARD_MODEL_NEAR_PULLDOWN_R OPEN -to ddr3a_mem_reset_n
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[0]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[1]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[2]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[3]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[4]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[5]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[6]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[7]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[8]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[9]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[10]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[11]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[12]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[13]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[14]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[15]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[16]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[17]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[18]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[19]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[20]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[21]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[22]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[23]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[24]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[25]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[26]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[27]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[28]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[29]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[30]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[31]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[32]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[33]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[34]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[35]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[36]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[37]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[38]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[39]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[40]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[41]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[42]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[43]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[44]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[45]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[46]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[47]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[48]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[49]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[50]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[51]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[52]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[53]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[54]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[55]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[56]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[57]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[58]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[59]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[60]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[61]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[62]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dq[63]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dm[0]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dm[1]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dm[2]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dm[3]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dm[4]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dm[5]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dm[6]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dm[7]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs[0]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs[1]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs[2]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs[3]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs[4]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs[5]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs[6]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs[7]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs_n[0]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs_n[1]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs_n[2]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs_n[3]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs_n[4]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs_n[5]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs_n[6]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_dqs_n[7]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[0]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[10]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[11]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[12]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[13]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[14]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[1]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[2]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[3]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[4]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[5]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[6]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[7]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[8]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_a[9]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_ba[0]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_ba[1]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_ba[2]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_cs_n
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_we_n
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_ras_n
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_cas_n
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_cke
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_odt
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_reset_n
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_ck
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3a_mem_ck_n
+
+#================================================================
+# QDR Rules
+#================================================================
+
+# RZQ
+set_instance_assignment -name IO_STANDARD "1.8 V" -to qdriib_mem_oct_rzqin
+set_location_assignment PIN_AR8 -to qdriib_mem_oct_rzqin
+
+#============================================================
+# QDRIIA
+#============================================================
+
+set_instance_assignment -name DQSB_DQS_PAIR ON -from qdriia_mem_k_n -to qdriia_mem_k
+
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[2]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[3]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[4]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[5]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[6]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[7]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[8]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[9]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[10]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[11]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[12]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[13]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[14]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[15]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[16]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[17]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[18]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[19]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_a[20]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_bws_n[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_bws_n[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_cq_n
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_cq
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[2]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[3]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[4]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[5]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[6]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[7]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[8]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[9]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[10]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[11]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[12]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[13]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[14]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[15]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[16]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_d[17]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_doff_n
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.8-V HSTL CLASS I" -to qdriia_mem_k_n
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.8-V HSTL CLASS I" -to qdriia_mem_k
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_odt
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[2]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[3]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[4]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[5]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[6]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[7]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[8]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[9]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[10]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[11]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[12]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[13]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[14]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[15]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[16]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_q[17]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_qvld
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_rps_n
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriia_mem_wps_n
+
+set_location_assignment PIN_AU29 -to qdriia_mem_a[0]
+set_location_assignment PIN_BA28 -to qdriia_mem_a[1]
+set_location_assignment PIN_AP27 -to qdriia_mem_a[2]
+set_location_assignment PIN_AK27 -to qdriia_mem_a[3]
+set_location_assignment PIN_AN27 -to qdriia_mem_a[4]
+set_location_assignment PIN_AM28 -to qdriia_mem_a[5]
+set_location_assignment PIN_AV28 -to qdriia_mem_a[6]
+set_location_assignment PIN_AY27 -to qdriia_mem_a[7]
+set_location_assignment PIN_BC29 -to qdriia_mem_a[8]
+set_location_assignment PIN_AU28 -to qdriia_mem_a[9]
+set_location_assignment PIN_AW27 -to qdriia_mem_a[10]
+set_location_assignment PIN_AY28 -to qdriia_mem_a[11]
+set_location_assignment PIN_BD28 -to qdriia_mem_a[12]
+set_location_assignment PIN_AV29 -to qdriia_mem_a[13]
+set_location_assignment PIN_AW29 -to qdriia_mem_a[14]
+set_location_assignment PIN_BB29 -to qdriia_mem_a[15]
+set_location_assignment PIN_BD29 -to qdriia_mem_a[16]
+set_location_assignment PIN_AL27 -to qdriia_mem_a[17]
+set_location_assignment PIN_AR27 -to qdriia_mem_a[18]
+set_location_assignment PIN_AL28 -to qdriia_mem_a[19]
+set_location_assignment PIN_AR28 -to qdriia_mem_a[20]
+set_location_assignment PIN_AJ24 -to qdriia_mem_bws_n[0]
+set_location_assignment PIN_AT27 -to qdriia_mem_bws_n[1]
+set_location_assignment PIN_BA25 -to qdriia_mem_cq_n
+set_location_assignment PIN_AH22 -to qdriia_mem_cq
+set_location_assignment PIN_AH28 -to qdriia_mem_d[0]
+set_location_assignment PIN_AH27 -to qdriia_mem_d[1]
+set_location_assignment PIN_AH25 -to qdriia_mem_d[2]
+set_location_assignment PIN_AJ28 -to qdriia_mem_d[3]
+set_location_assignment PIN_AJ27 -to qdriia_mem_d[4]
+set_location_assignment PIN_AJ26 -to qdriia_mem_d[5]
+set_location_assignment PIN_AJ25 -to qdriia_mem_d[6]
+set_location_assignment PIN_AL25 -to qdriia_mem_d[7]
+set_location_assignment PIN_AH24 -to qdriia_mem_d[8]
+set_location_assignment PIN_AN25 -to qdriia_mem_d[9]
+set_location_assignment PIN_AM26 -to qdriia_mem_d[10]
+set_location_assignment PIN_AM25 -to qdriia_mem_d[11]
+set_location_assignment PIN_AL26 -to qdriia_mem_d[12]
+set_location_assignment PIN_AK26 -to qdriia_mem_d[13]
+set_location_assignment PIN_AU27 -to qdriia_mem_d[14]
+set_location_assignment PIN_AU26 -to qdriia_mem_d[15]
+set_location_assignment PIN_AV26 -to qdriia_mem_d[16]
+set_location_assignment PIN_AW26 -to qdriia_mem_d[17]
+set_location_assignment PIN_AR23 -to qdriia_mem_doff_n
+set_location_assignment PIN_AR26 -to qdriia_mem_k_n
+set_location_assignment PIN_AP25 -to qdriia_mem_k
+set_location_assignment PIN_AN23 -to qdriia_mem_odt
+set_location_assignment PIN_AK23 -to qdriia_mem_q[0]
+set_location_assignment PIN_BB26 -to qdriia_mem_q[1]
+set_location_assignment PIN_BD26 -to qdriia_mem_q[2]
+set_location_assignment PIN_BA24 -to qdriia_mem_q[3]
+set_location_assignment PIN_AL23 -to qdriia_mem_q[4]
+set_location_assignment PIN_AJ23 -to qdriia_mem_q[5]
+set_location_assignment PIN_AL21 -to qdriia_mem_q[6]
+set_location_assignment PIN_AK21 -to qdriia_mem_q[7]
+set_location_assignment PIN_AJ22 -to qdriia_mem_q[8]
+set_location_assignment PIN_AW24 -to qdriia_mem_q[9]
+set_location_assignment PIN_BC26 -to qdriia_mem_q[10]
+set_location_assignment PIN_AY25 -to qdriia_mem_q[11]
+set_location_assignment PIN_AU24 -to qdriia_mem_q[12]
+set_location_assignment PIN_AV25 -to qdriia_mem_q[13]
+set_location_assignment PIN_AU25 -to qdriia_mem_q[14]
+set_location_assignment PIN_AR25 -to qdriia_mem_q[15]
+set_location_assignment PIN_AP24 -to qdriia_mem_q[16]
+set_location_assignment PIN_AL24 -to qdriia_mem_q[17]
+set_location_assignment PIN_AM23 -to qdriia_mem_qvld
+set_location_assignment PIN_AT26 -to qdriia_mem_rps_n
+set_location_assignment PIN_AK24 -to qdriia_mem_wps_n
+
+# PARALLEL SERIES CALIBRATION
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_cq
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_cq_n
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[0]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[1]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[2]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[3]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[4]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[5]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[6]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[7]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[8]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[9]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[10]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[11]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[12]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[13]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[14]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[15]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[16]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriia_mem_q[17]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITHOUT CALIBRATION" -to qdriia_mem_k
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITHOUT CALIBRATION" -to qdriia_mem_k_n
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[1]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[2]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[3]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[4]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[5]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[6]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[7]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[8]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[9]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[10]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[11]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[12]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[13]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[14]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[15]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[16]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_d[17]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_bws_n[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriia_mem_bws_n[1]
+
+#============================================================
+# QDRIIB
+#============================================================
+
+set_instance_assignment -name DQSB_DQS_PAIR ON -from qdriib_mem_k_n -to qdriib_mem_k
+
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[2]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[3]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[4]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[5]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[6]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[7]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[8]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[9]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[10]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[11]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[12]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[13]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[14]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[15]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[16]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[17]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[18]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[19]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_a[20]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_bws_n[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_bws_n[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_cq_n
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_cq
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[2]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[3]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[4]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[5]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[6]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[7]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[8]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[9]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[10]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[11]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[12]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[13]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[14]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[15]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[16]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_d[17]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_doff_n
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.8-V HSTL CLASS I" -to qdriib_mem_k_n
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.8-V HSTL CLASS I" -to qdriib_mem_k
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_odt
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[2]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[3]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[4]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[5]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[6]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[7]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[8]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[9]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[10]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[11]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[12]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[13]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[14]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[15]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[16]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_q[17]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_qvld
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_rps_n
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriib_mem_wps_n
+
+set_location_assignment PIN_AR24 -to qdriib_mem_a[0]
+set_location_assignment PIN_BB23 -to qdriib_mem_a[1]
+set_location_assignment PIN_AK20 -to qdriib_mem_a[2]
+set_location_assignment PIN_AJ19 -to qdriib_mem_a[3]
+set_location_assignment PIN_AL20 -to qdriib_mem_a[4]
+set_location_assignment PIN_AG19 -to qdriib_mem_a[5]
+set_location_assignment PIN_AT23 -to qdriib_mem_a[6]
+set_location_assignment PIN_AU23 -to qdriib_mem_a[7]
+set_location_assignment PIN_AV23 -to qdriib_mem_a[8]
+set_location_assignment PIN_AM22 -to qdriib_mem_a[9]
+set_location_assignment PIN_AJ20 -to qdriib_mem_a[10]
+set_location_assignment PIN_AG20 -to qdriib_mem_a[11]
+set_location_assignment PIN_AW23 -to qdriib_mem_a[12]
+set_location_assignment PIN_BB24 -to qdriib_mem_a[13]
+set_location_assignment PIN_AY24 -to qdriib_mem_a[14]
+set_location_assignment PIN_BD23 -to qdriib_mem_a[15]
+set_location_assignment PIN_BC23 -to qdriib_mem_a[16]
+set_location_assignment PIN_AG21 -to qdriib_mem_a[17]
+set_location_assignment PIN_AM20 -to qdriib_mem_a[18]
+set_location_assignment PIN_AK18 -to qdriib_mem_a[19]
+set_location_assignment PIN_AN22 -to qdriib_mem_a[20]
+set_location_assignment PIN_AV20 -to qdriib_mem_bws_n[0]
+set_location_assignment PIN_AU21 -to qdriib_mem_bws_n[1]
+set_location_assignment PIN_AP18 -to qdriib_mem_cq_n
+set_location_assignment PIN_AJ15 -to qdriib_mem_cq
+set_location_assignment PIN_BB21 -to qdriib_mem_d[0]
+set_location_assignment PIN_BD20 -to qdriib_mem_d[1]
+set_location_assignment PIN_BC20 -to qdriib_mem_d[2]
+set_location_assignment PIN_AR22 -to qdriib_mem_d[3]
+set_location_assignment PIN_BB20 -to qdriib_mem_d[4]
+set_location_assignment PIN_AU22 -to qdriib_mem_d[5]
+set_location_assignment PIN_BA21 -to qdriib_mem_d[6]
+set_location_assignment PIN_AY21 -to qdriib_mem_d[7]
+set_location_assignment PIN_AW21 -to qdriib_mem_d[8]
+set_location_assignment PIN_AT21 -to qdriib_mem_d[9]
+set_location_assignment PIN_AR21 -to qdriib_mem_d[10]
+set_location_assignment PIN_AP21 -to qdriib_mem_d[11]
+set_location_assignment PIN_BD22 -to qdriib_mem_d[12]
+set_location_assignment PIN_BC22 -to qdriib_mem_d[13]
+set_location_assignment PIN_BA22 -to qdriib_mem_d[14]
+set_location_assignment PIN_AV22 -to qdriib_mem_d[15]
+set_location_assignment PIN_AY22 -to qdriib_mem_d[16]
+set_location_assignment PIN_AW22 -to qdriib_mem_d[17]
+set_location_assignment PIN_AH19 -to qdriib_mem_doff_n
+set_location_assignment PIN_AT20 -to qdriib_mem_k_n
+set_location_assignment PIN_AR20 -to qdriib_mem_k
+set_location_assignment PIN_AH18 -to qdriib_mem_odt
+set_location_assignment PIN_AR19 -to qdriib_mem_q[0]
+set_location_assignment PIN_AM19 -to qdriib_mem_q[1]
+set_location_assignment PIN_AL19 -to qdriib_mem_q[2]
+set_location_assignment PIN_AM17 -to qdriib_mem_q[3]
+set_location_assignment PIN_AL18 -to qdriib_mem_q[4]
+set_location_assignment PIN_AN19 -to qdriib_mem_q[5]
+set_location_assignment PIN_AU18 -to qdriib_mem_q[6]
+set_location_assignment PIN_AK17 -to qdriib_mem_q[7]
+set_location_assignment PIN_AL17 -to qdriib_mem_q[8]
+set_location_assignment PIN_AG17 -to qdriib_mem_q[9]
+set_location_assignment PIN_AJ18 -to qdriib_mem_q[10]
+set_location_assignment PIN_AJ17 -to qdriib_mem_q[11]
+set_location_assignment PIN_AG18 -to qdriib_mem_q[12]
+set_location_assignment PIN_AU19 -to qdriib_mem_q[13]
+set_location_assignment PIN_AW19 -to qdriib_mem_q[14]
+set_location_assignment PIN_AV19 -to qdriib_mem_q[15]
+set_location_assignment PIN_AP19 -to qdriib_mem_q[16]
+set_location_assignment PIN_AN20 -to qdriib_mem_q[17]
+set_location_assignment PIN_AJ16 -to qdriib_mem_qvld
+set_location_assignment PIN_AW20 -to qdriib_mem_rps_n
+set_location_assignment PIN_AU20 -to qdriib_mem_wps_n
+# PARALLEL SERIES CALIBRATION
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_cq
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_cq_n
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[0]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[1]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[2]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[3]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[4]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[5]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[6]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[7]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[8]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[9]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[10]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[11]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[12]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[13]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[14]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[15]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[16]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriib_mem_q[17]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITHOUT CALIBRATION" -to qdriib_mem_k
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITHOUT CALIBRATION" -to qdriib_mem_k_n
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[1]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[2]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[3]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[4]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[5]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[6]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[7]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[8]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[9]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[10]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[11]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[12]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[13]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[14]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[15]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[16]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_d[17]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_bws_n[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriib_mem_bws_n[1]
+
+#============================================================
+# QDRIIC
+#============================================================
+
+set_instance_assignment -name DQSB_DQS_PAIR ON -from qdriic_mem_k_n -to qdriic_mem_k
+
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[2]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[3]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[4]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[5]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[6]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[7]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[8]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[9]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[10]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[11]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[12]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[13]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[14]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[15]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[16]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[17]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[18]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[19]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_a[20]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_bws_n[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_bws_n[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_cq_n
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_cq
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[2]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[3]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[4]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[5]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[6]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[7]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[8]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[9]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[10]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[11]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[12]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[13]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[14]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[15]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[16]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_d[17]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_doff_n
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.8-V HSTL CLASS I" -to qdriic_mem_k_n
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.8-V HSTL CLASS I" -to qdriic_mem_k
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_odt
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[2]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[3]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[4]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[5]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[6]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[7]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[8]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[9]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[10]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[11]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[12]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[13]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[14]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[15]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[16]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_q[17]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_qvld
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_rps_n
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriic_mem_wps_n
+
+
+set_location_assignment PIN_AV16 -to qdriic_mem_a[0]
+set_location_assignment PIN_AW16 -to qdriic_mem_a[1]
+set_location_assignment PIN_AP16 -to qdriic_mem_a[2]
+set_location_assignment PIN_AW9 -to qdriic_mem_a[3]
+set_location_assignment PIN_BD7 -to qdriic_mem_a[4]
+set_location_assignment PIN_BC7 -to qdriic_mem_a[5]
+set_location_assignment PIN_AR17 -to qdriic_mem_a[6]
+set_location_assignment PIN_AR18 -to qdriic_mem_a[7]
+set_location_assignment PIN_AT17 -to qdriic_mem_a[8]
+set_location_assignment PIN_BB9 -to qdriic_mem_a[9]
+set_location_assignment PIN_AH21 -to qdriic_mem_a[10]
+set_location_assignment PIN_AU17 -to qdriic_mem_a[11]
+set_location_assignment PIN_AU16 -to qdriic_mem_a[12]
+set_location_assignment PIN_BB8 -to qdriic_mem_a[13]
+set_location_assignment PIN_AT18 -to qdriic_mem_a[14]
+set_location_assignment PIN_AW17 -to qdriic_mem_a[15]
+set_location_assignment PIN_AV17 -to qdriic_mem_a[16]
+set_location_assignment PIN_AU8 -to qdriic_mem_a[17]
+set_location_assignment PIN_AT9 -to qdriic_mem_a[18]
+set_location_assignment PIN_AV8 -to qdriic_mem_a[19]
+set_location_assignment PIN_AN17 -to qdriic_mem_a[20]
+set_location_assignment PIN_AJ11 -to qdriic_mem_bws_n[0]
+set_location_assignment PIN_AJ10 -to qdriic_mem_bws_n[1]
+set_location_assignment PIN_AF13 -to qdriic_mem_cq_n
+set_location_assignment PIN_BC11 -to qdriic_mem_cq
+set_location_assignment PIN_AG9 -to qdriic_mem_d[0]
+set_location_assignment PIN_AG10 -to qdriic_mem_d[1]
+set_location_assignment PIN_AG12 -to qdriic_mem_d[2]
+set_location_assignment PIN_AG11 -to qdriic_mem_d[3]
+set_location_assignment PIN_AV10 -to qdriic_mem_d[4]
+set_location_assignment PIN_AH12 -to qdriic_mem_d[5]
+set_location_assignment PIN_AK12 -to qdriic_mem_d[6]
+set_location_assignment PIN_AL12 -to qdriic_mem_d[7]
+set_location_assignment PIN_AJ12 -to qdriic_mem_d[8]
+set_location_assignment PIN_AN12 -to qdriic_mem_d[9]
+set_location_assignment PIN_AM13 -to qdriic_mem_d[10]
+set_location_assignment PIN_AR12 -to qdriic_mem_d[11]
+set_location_assignment PIN_AR13 -to qdriic_mem_d[12]
+set_location_assignment PIN_AU9 -to qdriic_mem_d[13]
+set_location_assignment PIN_AU10 -to qdriic_mem_d[14]
+set_location_assignment PIN_AU11 -to qdriic_mem_d[15]
+set_location_assignment PIN_AV11 -to qdriic_mem_d[16]
+set_location_assignment PIN_AT12 -to qdriic_mem_d[17]
+set_location_assignment PIN_AE14 -to qdriic_mem_doff_n
+set_location_assignment PIN_AP13 -to qdriic_mem_k_n
+set_location_assignment PIN_AP12 -to qdriic_mem_k
+set_location_assignment PIN_BD10 -to qdriic_mem_odt
+set_location_assignment PIN_BA12 -to qdriic_mem_q[0]
+set_location_assignment PIN_AF14 -to qdriic_mem_q[1]
+set_location_assignment PIN_AE13 -to qdriic_mem_q[2]
+set_location_assignment PIN_AD14 -to qdriic_mem_q[3]
+set_location_assignment PIN_AE12 -to qdriic_mem_q[4]
+set_location_assignment PIN_AF11 -to qdriic_mem_q[5]
+set_location_assignment PIN_AE11 -to qdriic_mem_q[6]
+set_location_assignment PIN_AE10 -to qdriic_mem_q[7]
+set_location_assignment PIN_AE9 -to qdriic_mem_q[8]
+set_location_assignment PIN_BB11 -to qdriic_mem_q[9]
+set_location_assignment PIN_AW11 -to qdriic_mem_q[10]
+set_location_assignment PIN_AF10 -to qdriic_mem_q[11]
+set_location_assignment PIN_AY12 -to qdriic_mem_q[12]
+set_location_assignment PIN_AW10 -to qdriic_mem_q[13]
+set_location_assignment PIN_AY10 -to qdriic_mem_q[14]
+set_location_assignment PIN_BB12 -to qdriic_mem_q[15]
+set_location_assignment PIN_BC10 -to qdriic_mem_q[16]
+set_location_assignment PIN_BA10 -to qdriic_mem_q[17]
+set_location_assignment PIN_BD11 -to qdriic_mem_qvld
+set_location_assignment PIN_AH10 -to qdriic_mem_rps_n
+set_location_assignment PIN_AL11 -to qdriic_mem_wps_n
+
+# PARALLEL SERIES CALIBRATION
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_cq
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_cq_n
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[0]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[1]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[2]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[3]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[4]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[5]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[6]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[7]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[8]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[9]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[10]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[11]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[12]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[13]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[14]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[15]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[16]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriic_mem_q[17]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITHOUT CALIBRATION" -to qdriic_mem_k
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITHOUT CALIBRATION" -to qdriic_mem_k_n
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[1]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[2]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[3]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[4]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[5]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[6]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[7]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[8]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[9]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[10]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[11]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[12]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[13]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[14]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[15]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[16]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_d[17]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_bws_n[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriic_mem_bws_n[1]
+#============================================================
+# QDRIID
+#============================================================
+set_instance_assignment -name DQSB_DQS_PAIR ON -from qdriid_mem_k_n -to qdriid_mem_k
+
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[2]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[3]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[4]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[5]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[6]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[7]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[8]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[9]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[10]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[11]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[12]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[13]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[14]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[15]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[16]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[17]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[18]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[19]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_a[20]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_bws_n[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_bws_n[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_cq_n
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_cq
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[2]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[3]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[4]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[5]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[6]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[7]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[8]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[9]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[10]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[11]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[12]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[13]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[14]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[15]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[16]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_d[17]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_doff_n
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.8-V HSTL CLASS I" -to qdriid_mem_k_n
+set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.8-V HSTL CLASS I" -to qdriid_mem_k
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_odt
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[0]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[1]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[2]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[3]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[4]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[5]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[6]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[7]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[8]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[9]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[10]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[11]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[12]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[13]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[14]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[15]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[16]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_q[17]
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_qvld
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_rps_n
+set_instance_assignment -name IO_STANDARD "1.8-V HSTL CLASS I" -to qdriid_mem_wps_n
+
+set_location_assignment PIN_N26 -to qdriid_mem_a[0]
+set_location_assignment PIN_P28 -to qdriid_mem_a[1]
+set_location_assignment PIN_N28 -to qdriid_mem_a[2]
+set_location_assignment PIN_L26 -to qdriid_mem_a[3]
+set_location_assignment PIN_K27 -to qdriid_mem_a[4]
+set_location_assignment PIN_L27 -to qdriid_mem_a[5]
+set_location_assignment PIN_U26 -to qdriid_mem_a[6]
+set_location_assignment PIN_T26 -to qdriid_mem_a[7]
+set_location_assignment PIN_T27 -to qdriid_mem_a[8]
+set_location_assignment PIN_V27 -to qdriid_mem_a[9]
+set_location_assignment PIN_U27 -to qdriid_mem_a[10]
+set_location_assignment PIN_R27 -to qdriid_mem_a[11]
+set_location_assignment PIN_P27 -to qdriid_mem_a[12]
+set_location_assignment PIN_V25 -to qdriid_mem_a[13]
+set_location_assignment PIN_V26 -to qdriid_mem_a[14]
+set_location_assignment PIN_T25 -to qdriid_mem_a[15]
+set_location_assignment PIN_P26 -to qdriid_mem_a[16]
+set_location_assignment PIN_M27 -to qdriid_mem_a[17]
+set_location_assignment PIN_M28 -to qdriid_mem_a[18]
+set_location_assignment PIN_P29 -to qdriid_mem_a[19]
+set_location_assignment PIN_D29 -to qdriid_mem_a[20]
+set_location_assignment PIN_E26 -to qdriid_mem_bws_n[0]
+set_location_assignment PIN_K26 -to qdriid_mem_bws_n[1]
+set_location_assignment PIN_H27 -to qdriid_mem_cq_n
+set_location_assignment PIN_E29 -to qdriid_mem_cq
+set_location_assignment PIN_H25 -to qdriid_mem_d[0]
+set_location_assignment PIN_H24 -to qdriid_mem_d[1]
+set_location_assignment PIN_H23 -to qdriid_mem_d[2]
+set_location_assignment PIN_J25 -to qdriid_mem_d[3]
+set_location_assignment PIN_J24 -to qdriid_mem_d[4]
+set_location_assignment PIN_K25 -to qdriid_mem_d[5]
+set_location_assignment PIN_D26 -to qdriid_mem_d[6]
+set_location_assignment PIN_F25 -to qdriid_mem_d[7]
+set_location_assignment PIN_G25 -to qdriid_mem_d[8]
+set_location_assignment PIN_N23 -to qdriid_mem_d[9]
+set_location_assignment PIN_P24 -to qdriid_mem_d[10]
+set_location_assignment PIN_P23 -to qdriid_mem_d[11]
+set_location_assignment PIN_L24 -to qdriid_mem_d[12]
+set_location_assignment PIN_R24 -to qdriid_mem_d[13]
+set_location_assignment PIN_U23 -to qdriid_mem_d[14]
+set_location_assignment PIN_U24 -to qdriid_mem_d[15]
+set_location_assignment PIN_T24 -to qdriid_mem_d[16]
+set_location_assignment PIN_T23 -to qdriid_mem_d[17]
+set_location_assignment PIN_E27 -to qdriid_mem_doff_n
+set_location_assignment PIN_K24 -to qdriid_mem_k_n
+set_location_assignment PIN_L23 -to qdriid_mem_k
+set_location_assignment PIN_H26 -to qdriid_mem_odt
+set_location_assignment PIN_C27 -to qdriid_mem_q[0]
+set_location_assignment PIN_A26 -to qdriid_mem_q[1]
+set_location_assignment PIN_B26 -to qdriid_mem_q[2]
+set_location_assignment PIN_F26 -to qdriid_mem_q[3]
+set_location_assignment PIN_G26 -to qdriid_mem_q[4]
+set_location_assignment PIN_C28 -to qdriid_mem_q[5]
+set_location_assignment PIN_A29 -to qdriid_mem_q[6]
+set_location_assignment PIN_A28 -to qdriid_mem_q[7]
+set_location_assignment PIN_B28 -to qdriid_mem_q[8]
+set_location_assignment PIN_G28 -to qdriid_mem_q[9]
+set_location_assignment PIN_F28 -to qdriid_mem_q[10]
+set_location_assignment PIN_D27 -to qdriid_mem_q[11]
+set_location_assignment PIN_G29 -to qdriid_mem_q[12]
+set_location_assignment PIN_F29 -to qdriid_mem_q[13]
+set_location_assignment PIN_H28 -to qdriid_mem_q[14]
+set_location_assignment PIN_K28 -to qdriid_mem_q[15]
+set_location_assignment PIN_J28 -to qdriid_mem_q[16]
+set_location_assignment PIN_H29 -to qdriid_mem_q[17]
+set_location_assignment PIN_J27 -to qdriid_mem_qvld
+set_location_assignment PIN_F24 -to qdriid_mem_rps_n
+set_location_assignment PIN_M23 -to qdriid_mem_wps_n
+
+# PARALLEL SERIES CALIBRATION
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_cq
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_cq_n
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[0]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[1]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[2]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[3]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[4]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[5]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[6]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[7]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[8]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[9]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[10]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[11]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[12]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[13]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[14]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[15]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[16]
+set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to qdriid_mem_q[17]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITHOUT CALIBRATION" -to qdriid_mem_k
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITHOUT CALIBRATION" -to qdriid_mem_k_n
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[1]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[2]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[3]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[4]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[5]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[6]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[7]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[8]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[9]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[10]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[11]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[12]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[13]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[14]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[15]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[16]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_d[17]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_bws_n[0]
+set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to qdriid_mem_bws_n[1]
+

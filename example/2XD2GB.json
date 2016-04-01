@@ -1,0 +1,8 @@
+{"Board":"2XD2GB_4XQ8MB",
+ {"System": "0",
+ "Type":"DDR3",
+ {"ID":"A",
+  "Role":"Primary"}
+ {"ID":"B",
+  "Role":"Secondary", 
+  "Master":"A"}}}

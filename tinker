@@ -1,0 +1,94 @@
+#!/usr/bin/env python
+import argparse as ap
+import os
+import xml.etree.ElementTree as et
+from xml.dom import minidom
+
+import Board
+
+def checkdist(tp):
+    if(not os.path.exists(tp)):
+        print "ERROR: Path %s does not exist", tp
+        exit(1)
+
+def checkvar(v):
+    if(v not in os.environ):
+        print "ERROR: Environment Variable %s not set",v
+        exit(1)
+
+def buildargs(par):
+    par.add_argument("-l", "--list-boards", action="store_true",
+                    help="List the available board skeletons available to Tinker")
+    par.add_argument("-i", "--get-board-info",nargs=2, action="store",metavar=("<version>","<board_name>"),
+                    help="Get info about a specific board and version")
+    par.add_argument("-g","--generate", action="store",
+                    metavar="<path-to-specification>",
+                    help="Generate a Board Support Package (BSP) using"+
+                    "the specification within the text file")
+
+def get_available_versions(path):
+    p = path + "boards/versions.xml"
+    r = et.parse(p)
+    versions = []
+    for e in r.findall("./release/[@version]"):
+        versions.append(e.get("version"))
+    return versions
+    
+def get_available_boards(path, ver):
+    p = path + "boards/versions.xml"
+    r = et.parse(p)
+    es = r.findall("./release/[@version='%s']" % str(ver))
+    if(len(es) > 1):
+        print "ERROR: Multiple matches for version %s" % str(ver)
+    e = es[0]
+
+    p = os.path.expandvars(e.get("path")) + "/boards.xml"
+    boardr = et.parse(p)
+    names = []
+    for board in boardr.iterfind(("./board/[@version='%s']" % ver)):
+        name = board.get("name")
+        names.append(name)
+        
+    return names
+
+def list_boards(tinker_path):
+    versions = get_available_versions(tinker_path)
+    print "Supported Quartus Versions:",
+    for ver in versions:
+        print ver,
+    print
+
+    version = ""
+    name = ""
+    for ver in versions:
+        boards = get_available_boards(tinker_path, ver)
+        print "Boards available for %s:" % ver
+        for board in boards:
+            print "\t" + board + " ",
+        print
+
+    print "For more information about the interfaces and memories"
+    print "available on a board, use the -i flag, for example:"
+    print "\tboardgen -i %s %s" % (version,name)
+
+checkvar("TINKER_PATH")
+checkvar("TCLXML_PATH")
+tinker_path = os.path.expandvars("${TINKER_PATH}") + "/"
+checkdist(tinker_path)
+
+par = ap.ArgumentParser(description="Generate a Board Support Package for Altera's OpenCL Compiler")
+buildargs(par)
+args = par.parse_args()
+
+
+if(args.list_boards):
+    list_boards(tinker_path)
+elif(args.get_board_info):
+    version = args.get_board_info[0]
+    name = args.get_board_info[1]
+    # TODO: Build path from XML file
+    b = Board.Board(tinker_path + "/boards/%s/%s/%s.xml" % (version,name,name), "14.1", "de5net")
+    d = b.get_info()
+    print "Getting Info for Board %s, Version %s" % (name, version)
+    b.print_info(0)
+

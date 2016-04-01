@@ -1,0 +1,18 @@
+{"Board":"2XD2GB_3XQ8MB",
+ {"System": "0",
+  "Type":"DDR3",
+  {"ID":"a",
+   "Role":"primary"}
+  {"ID":"b",
+   "Role":"secondary", 
+   "Master":"A"}},
+ {"System":"1",
+  "Type":"QDRII",
+  {"ID":"a",
+   "Role":"primary"},
+  {"ID":"b",
+   "Role":"secondary", 
+   "Master":"A"},
+  {"ID":"c",
+   "Role":"secondary",
+   "Master":"A"}}}

@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<board version="0.9" name="de5net_a7">
+  <device device_model="5sgxma7h2fe35c2_dm.xml">
+    <used_resources>
+      <alms num="19538"/> <!-- ALMs used in final placement - ALMs used for registers -->
+      <ffs num="51471"/>
+      <dsps num="0"/>
+      <rams num="283"/>
+    </used_resources>
+  </device>
+
+  <!-- Two DDR3-1600 DIMMs, 64-bit data -->
+  <global_mem max_bandwidth="25600" interleaved_bytes="1024">
+    <interface name="acl_iface" port="kernel_mem0" type="slave" width="512" maxburst="16" address="0x00000000" size="0x80000000" latency="240"/>
+    <interface name="acl_iface" port="kernel_mem1" type="slave" width="512" maxburst="16" address="0x80000000" size="0x80000000" latency="240"/>
+  </global_mem>
+  <host>
+    <kernel_config start="0x00000000" size="0x0100000"/>
+  </host>
+  <interfaces>
+    <interface name="acl_iface" port="kernel_cra" type="master" width="64" misc="0"/>
+    <interface name="acl_iface" port="kernel_irq" type="irq" width="1"/>
+    <interface name="acl_iface" port="acl_internal_snoop" type="streamsource" enable="SNOOPENABLE" width="32" clock="acl_iface.kernel_clk"/>
+    <kernel_clk_reset clk="acl_iface.kernel_clk" clk2x="acl_iface.kernel_clk2x" reset="acl_iface.kernel_reset"/>
+  </interfaces>
+</board>

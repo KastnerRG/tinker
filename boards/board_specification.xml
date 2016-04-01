@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<board version="0.9" name="de5_2XD2GB_4XQ8MB_4XL1MB" file="de5net.xml">
+  <device device_model="5sgxma7h2fe35c2_dm.xml">
+    <used_resources>
+      <alms num="19538"/> <!-- ALMs used in final placement - ALMs used for registers -->
+      <ffs num="51471"/>
+      <dsps num="0"/>
+      <rams num="283"/>
+    </used_resources>
+  </device>
+  <global_mem name="DDR" max_bandwidth="25600" interleaved_bytes="1024" config_addr="0x18" type="DDR3" quantity="2" index="0" mem_frequency_mhz="800.0" ref_frequency_mhz="50.0" ratio="Quarter" role="primary" width="512" maxburst="16" addr_width="32">
+    <interface name="acl_iface" port="kernel_0_ddr3a_rw" type="slave" width="512" maxburst="16" address="0x00000000" size="0x80000000" latency="240" id="a" role="primary" shared=""/>
+    <interface name="acl_iface" port="kernel_0_ddr3b_rw" type="slave" width="512" maxburst="16" address="0x80000000" size="0x80000000" latency="240" id="b" role="secondary" primary="a" shared="pll,dll,oct"/>
+  </global_mem>
+  <global_mem name="QDR" max_bandwidth="7200" interleaved_bytes="32" config_addr="0x100" type="QDRII" quantity="4" index="1" mem_frequency_mhz="450.0" ref_frequency_mhz="50.0" ratio="Half" role="secondary" width="64" maxburst="4" addr_width="25">
+    <interface name="acl_iface" type="slave" width="64" maxburst="4" address="0x100000000" size="0x800000" latency="150" id="a" role="secondary" primary="b" shared="pll,dll,oct">
+      <port name="kernel_1_qdriia_r" direction="r"/>
+      <port name="kernel_1_qdriia_w" direction="w"/>
+    </interface>
+    <interface name="acl_iface" type="slave" width="64" maxburst="4" address="0x100800000" size="0x800000" latency="150" id="b" role="primary" shared="pll,dll,oct">
+      <port name="kernel_1_qdriib_r" direction="r"/>
+      <port name="kernel_1_qdriib_w" direction="w"/>
+    </interface>
+    <interface name="acl_iface" type="slave" width="64" maxburst="4" address="0x101000000" size="0x800000" latency="150" id="c" role="secondary" primary="b" shared="pll,dll,oct">
+      <port name="kernel_1_qdriic_r" direction="r"/>
+      <port name="kernel_1_qdriic_w" direction="w"/>
+    </interface>
+    <interface name="acl_iface" type="slave" width="64" maxburst="4" address="0x101800000" size="0x800000" latency="150" id="d" role="independent" primary="b" shared="oct">
+      <port name="kernel_1_qdriid_r" direction="r"/>
+      <port name="kernel_1_qdriid_w" direction="w"/>
+    </interface>
+  </global_mem>
+  <global_mem name="LOCAL" max_bandwidth="8000" interleaved_bytes="8" config_addr="0x118" type="LOCAL" quantity="4" index="2" mem_frequency_mhz="200.0" ref_frequency_mhz="50.0" ratio="Full"  role="secondary" width="64" maxburst="1" addr_width="22">
+    <interface name="acl_iface" port="kernel_2_locala_rw" type="slave" width="64" maxburst="1" address="0x102000000" size="0x100000" latency="40" id="a" role="primary" address_width="20" shared=""/>
+    <interface name="acl_iface" port="kernel_2_localb_rw" type="slave" width="64" maxburst="1" address="0x102100000" size="0x100000" latency="40" id="b" role="independent" address_width="20" shared=""/>
+    <interface name="acl_iface" port="kernel_2_localc_rw" type="slave" width="64" maxburst="1" address="0x102200000" size="0x100000" latency="40" id="c" role="independent" address_width="20" shared=""/>
+    <interface name="acl_iface" port="kernel_2_locald_rw" type="slave" width="64" maxburst="1" address="0x102300000" size="0x100000" latency="40" id="d" role="independent" address_width="20" shared=""/>
+  </global_mem>  
+  <host>
+    <kernel_config start="0x00000000" size="0x0100000"/>
+  </host>
+  <interfaces>
+    <interface name="acl_iface" port="kernel_cra" type="master" width="64" misc="0"/>
+    <interface name="acl_iface" port="kernel_irq" type="irq" width="1"/>
+    <interface name="acl_iface" port="acl_internal_snoop" type="streamsource" enable="SNOOPENABLE" width="32" clock="acl_iface.kernel_clk"/>
+    <kernel_clk_reset clk="acl_iface.kernel_clk" clk2x="acl_iface.kernel_clk2x" reset="acl_iface.kernel_reset"/>
+  </interfaces>
+</board>
