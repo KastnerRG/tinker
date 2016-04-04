@@ -70,7 +70,7 @@ class Memory(IP):
         if(specification):
             r.set("quantity",str(len(s[n]["Interfaces"])))
             r.set("width",str(width))
-            r.set("index",str(n))
+            r.set("sys_id",str(n))
             r.set("type",s[n]["Type"])
             r.set("maxburst",str(burst))
             r.set("addr_width",str(int(math.log(base,2))))

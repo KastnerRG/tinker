@@ -98,6 +98,8 @@ elif(args.generate):
     board = args.generate[2]
     b = Board.Board(tinker_path + "/boards/%s/%s/%s.xml" % (version,board,board), version, board)
     s = Specification.Specification(path)
-    e = b.build_spec(s, version, specification=True)
+    e = b.build_spec(s, version)
 
+    print Tinker.prettify(e)
+    e = b.build_spec(s, version, specification=True)
     print Tinker.prettify(e)

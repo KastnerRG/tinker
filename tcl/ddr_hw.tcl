@@ -49,7 +49,7 @@ proc compose { } {
     # Variable initialization
     ############################################################################
     set symbol_width 8
-    set ddr_multiplier 2 
+    set ddr_multiplier 2
     
     set board_path [get_parameter_value BOARD_PATH]
     set board_file $board_path/board_specification.xml
@@ -69,7 +69,7 @@ proc compose { } {
     set mem_id [get_parameter_value MEMORY_IDENTIFIER]
 
     set sysids {}
-    foreach node [dom::selectNode $board_dom {/board/global_mem[@type="DDR3"]/*/@index}] {
+    foreach node [dom::selectNode $board_dom {/board/global_mem[@type="DDR3"]/*/@sys_id}] {
 	lappend sysids [$node stringValue]
     }
 
@@ -77,9 +77,9 @@ proc compose { } {
     set sys_id [get_parameter_value SYSTEM_IDENTIFIER]
 
     # Memory-system specific variables
-    set mem_clock_freq [[dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/@mem_frequency_mhz] stringValue]
-    set ref_clock_freq [[dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/@ref_frequency_mhz] stringValue]
-    set fabric_ratio [[dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/@ratio] stringValue]
+    set mem_clock_freq [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@mem_frequency_mhz] stringValue]
+    set ref_clock_freq [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@ref_frequency_mhz] stringValue]
+    set fabric_ratio [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@ratio] stringValue]
 
     # Memory-specific parameters
     set bank_pins [[dom::selectNode $param_dom /board/memory\[@type="DDR3"\]/phy\[@id=\"$mem_id\"\]/@bank_pins] stringValue]
@@ -88,17 +88,17 @@ proc compose { } {
     set dq_pins [[dom::selectNode $param_dom /board/memory\[@type="DDR3"\]/phy\[@id=\"$mem_id\"\]/@dq_pins] stringValue]
     set addr_width [expr log($dq_pins/$symbol_width)/log(2) + $bank_pins + $row_pins + $col_pins]
 
-    set shared_nodes [dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@id]
+    set shared_nodes [dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@id]
 
-    set max_burst [[dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@maxburst] stringValue]
+    set max_burst [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@maxburst] stringValue]
     set shared_ids {}
     foreach node $shared_nodes {
 	lappend shared_ids [$node stringValue]
     }
     set num_shared [llength $shared_ids]
-    set shared_interfaces [split [[dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@shared] stringValue] ","]
+    set shared_interfaces [split [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@shared] stringValue] ","]
 
-    set role [[dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@role] stringValue]
+    set role [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@role] stringValue]
 
     # determine numeric representation from its string equivalent
     if [string match "Quarter" $fabric_ratio] {
@@ -199,16 +199,16 @@ proc compose { } {
 	}
     } else {
 	if {"pll" in $shared_interfaces} {
-	    add_interface pll_sharing_$mem_id conduit end
-	    set_interface_property pll_sharing_$mem_id EXPORT_OF ddr3.pll_sharing
+	    add_interface pll_sharing_$id conduit end
+	    set_interface_property pll_sharing_$id EXPORT_OF ddr3.pll_sharing
 	} 
 	if {"dll" in $shared_interfaces} {
-	    add_interface dll_sharing_$mem_id conduit end
-	    set_interface_property dll_sharing_$mem_id EXPORT_OF ddr3.dll_sharing
+	    add_interface dll_sharing_$id conduit end
+	    set_interface_property dll_sharing_$id EXPORT_OF ddr3.dll_sharing
 	}
 	if {"oct" in $shared_interfaces} {
-	    add_interface oct_sharing_$mem_id conduit end
-	    set_interface_property oct_sharing_$mem_id EXPORT_OF ddr3.oct_sharing
+	    add_interface oct_sharing_$id conduit end
+	    set_interface_property oct_sharing_$id EXPORT_OF ddr3.oct_sharing
 	}
     }
 

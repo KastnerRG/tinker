@@ -15,10 +15,10 @@ class Phy(IP):
         d = defaultdict()
         id = e.get("id")
         d["id"] = id
-        if(not Tinker.match_enum(id,enum)):
-            print (("ERROR: Enumeration of type %s was %s but ID is %s.\n" +
+        if(not Tinker.is_alphachar(id)):
+            print (("ERROR: Expected alphabetical character ID for type %s but ID is %s.\n" +
                         "Check the board-specific XML file") %
-                        (t, enum, id))
+                        (t, id))
             exit(1)
 
         macro = e.get("macro")
@@ -35,10 +35,10 @@ class Phy(IP):
         gs = [s.strip() for s in e.get("grouping").split(",")]
         gs.remove(id)
         for p in gs:
-            if(not Tinker.match_enum(p,enum)):
-                print (("ERROR: Enumeration of type %s was %s but partner of %s is %s.\n" +
-                    "Check the board-specific XML file") %
-                    (t, enum, id, p))
+            if(not Tinker.is_alphachar(p)):
+                print (("ERROR: Expected alphabetical character ID for type %s but ID is %s.\n" +
+                        "Check the board-specific XML file") %
+                        (t, id))
                 exit(1)
         d["group"] = gs
         
@@ -101,8 +101,9 @@ class Phy(IP):
     def build_spec(self, spec, n , id, base, burst, width, specification=False):
         s = spec.get_info()
         size = int(s[n][id]["Size"],16)
-        if(size >= self.info["size"]):
+        if(size > self.info["size"]):
             print "ERROR! Size is too large for memory"
+            exit(1)
         r = ET.Element("interface", attrib={"name": self.info["type"], "type":"slave", "address":str(hex(base)), "size":str(hex(size))})
 
         # Check that the width is valid:
@@ -120,15 +121,19 @@ class Phy(IP):
                 exit(1)
         r.set("width", str(width))
         r.set("burst", str(burst))
-
         if(specification):
+            primary = s[n]["Primary"]
+            r.set("id", str(id))
             r.set("ratio", v)
             r.set("role", s[n][id]["Role"])
-            # TODO: What about shared OCT pins?
             if(s[n][id]["Role"] == "secondary"):
                 r.set("shared","pll,dll,oct")
+            if(s[n][id]["Role"] == "secondary"):
+                r.set("shared","oct")
+                r.set("primary",primary)
             else:
                 r.set("shared","")
+
             r.set("max_frequency_mhz",str(self.info["fmax_mhz"]))
             r.set("ref_frequency_mhz",str(self.info["fref_mhz"]))
             

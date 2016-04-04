@@ -69,7 +69,7 @@ proc compose { } {
     set mem_id [get_parameter_value MEMORY_IDENTIFIER]
 
     set sysids {}
-    foreach node [dom::selectNode $board_dom {/board/global_mem[@type="QDRII"]/*/@index}] {
+    foreach node [dom::selectNode $board_dom {/board/global_mem[@type="QDRII"]/*/@sys_id}] {
 	lappend sysids [$node stringValue]
     }
 
@@ -80,21 +80,21 @@ proc compose { } {
     set address_pins [[dom::selectNode $param_dom /board/memory\[@type="QDRII"\]/phy\[@id=\"$mem_id\"\]/@address_pins] stringValue]
 
     # Memory-system specific variables
-    set mem_clock_freq [[dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/@mem_frequency_mhz] stringValue]
-    set ref_clock_freq [[dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/@ref_frequency_mhz] stringValue]
-    set fabric_ratio [[dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/@ratio] stringValue]
+    set mem_clock_freq [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@mem_frequency_mhz] stringValue]
+    set ref_clock_freq [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@ref_frequency_mhz] stringValue]
+    set fabric_ratio [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@ratio] stringValue]
 
-    set shared_nodes [dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@id]
+    set shared_nodes [dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@id]
 
-    set max_burst [[dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@maxburst] stringValue]
+    set max_burst [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@maxburst] stringValue]
     set shared_ids {}
     foreach node $shared_nodes {
 	lappend shared_ids [$node stringValue]
     }
     set num_shared [llength $shared_ids]
-    set shared_interfaces [split [[dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@shared] stringValue] ","]
+    set shared_interfaces [split [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@shared] stringValue] ","]
 
-    set role [[dom::selectNode $board_dom /board/global_mem\[@index=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@role] stringValue]
+    set role [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@role] stringValue]
 
     # determine numeric representation from its string equivalent
     if [string match "Quarter" $fabric_ratio] {

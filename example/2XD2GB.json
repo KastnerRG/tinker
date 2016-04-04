@@ -2,6 +2,7 @@
  "Systems":["0"],
  "0":{"System": "0",
       "Interfaces":["a","b"],
+      "Primary":"a",
       "Type":"DDR3",
       "Width":"512",
       "a": {"ID":"a",

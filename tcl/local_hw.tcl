@@ -69,7 +69,7 @@ proc compose { } {
     set mem_id [get_parameter_value MEMORY_IDENTIFIER]
 
     set sysids {}
-    foreach node [dom::selectNode $board_dom {/board/global_mem[@type="DDR3"]/*/@index}] {
+    foreach node [dom::selectNode $board_dom {/board/global_mem[@type="LOCAL"]/*/@index}] {
 	lappend sysids [$node stringValue]
     }
 

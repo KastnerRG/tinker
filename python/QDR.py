@@ -65,5 +65,9 @@ class QDR(Phy):
 
     def build_spec(self, spec, n , id, base, burst, width, specification=False):
         r = super(QDR,self).build_spec(spec,n,id,base, burst, width, specification=specification)
+        r.set("latency","150") # Standard, recommended by Altera
+        ET.SubElement(r,"port",attrib={"name": "kernel_%s_qdrii%s_r" % (n,id), "direction":"r"})
+        ET.SubElement(r,"port",attrib={"name": "kernel_%s_qdrii%s_w" % (n,id), "direction":"w"})
+
         # TODO: Add ports
         return r
