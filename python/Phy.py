@@ -1,12 +1,15 @@
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 import Tinker
-class Phy(ET.Element):
+from IP import IP
+
+class Phy(IP):
     def __init__(self, e, t, enum):
+        super(Phy,self).__init__(e)
         self.t = t;
-        self.info = self.__parse_info(e, t, enum)
+        info = self.__parse_info(e,t,enum) 
+        self.info.update(info)
         self.params = self.__parse_params(e)
-        super(Phy,self).__init__("interface")
 
     def __parse_info(self, e, t, enum):
         d = defaultdict()
@@ -49,30 +52,22 @@ class Phy(ET.Element):
         d["ports"] = ports
 
         ratios = [s.strip() for s in e.get("ratios").split(",")]
-        err = Tinker.list_diff(ratios,["quarter","half","full"])
+        err = Tinker.list_diff(ratios,["Quarter","Half","Full"])
         if(len(err) > 0):
-            print (("ERROR: Unknown ratio type(s) for %s, id %s in XML file: %s" +
+            print (("ERROR: Unknown ratio type(s) for %s, id %s in XML file: %s\n" +
                     "Check the board-specific XML file") %
                     (t, id,str(err)))
             exit(1)
         d["ratios"] = ratios
 
-        rate = [s.strip() for s in e.get("rate").split(",")]
-        err = Tinker.list_diff(rate,["single","double"])
+        rate = e.get("rate")
+        err = Tinker.list_diff([rate],["single","double"])
         if(len(err) > 0):
             print (("ERROR: Unknown rate for %s, id %s in XML file: %s\n" +
                     "Check the board-specific XML file") %
                     (t, id,str(err)))
             exit(1)
         d["rate"] = rate
-
-        fmax_mhz = e.get("fmax_mhz")
-        if(not Tinker.is_number(fmax_mhz)):
-            print (("ERROR: Maximum Frequency of type %s, is %s was %s, which is not a number.\n" +
-                        "Check the board-specific XML file") %
-                        (t, id, str(fmax)))
-            exit(1)
-        d["fmax_mhz"] = int(fmax_mhz)
 
         fref_mhz = e.get("fref_mhz")
         if(not Tinker.is_number(fref_mhz)):
@@ -96,7 +91,6 @@ class Phy(ET.Element):
         print l*"\t" + "Interface ID: %s" % self.info["id"]
         print (l + 1)*"\t" + "Size: 0x%x (%d bytes)" % (self.info["size"],self.info["size"])
         print (l + 1)*"\t" + "Max Freq: %s MHz" % str(self.info["fmax_mhz"])
-        print (l + 1)*"\t" + "Bandwidth: %d Bytes/Sec" % (self.info["fmax_mhz"] * 10**6 * self.info["pow2_dq_pins"])
         print (l + 1)*"\t" + "Associated Interfaces: %s" % str(self.info["group"])
         print (l + 1)*"\t" + "Roles: %s " % str(self.info["roles"])
         print (l + 1)*"\t" + "Ports: %s " % str(self.info["ports"])
@@ -104,6 +98,42 @@ class Phy(ET.Element):
     def set_params(self):
         pass
 
+    def build_spec(self, spec, n , id, base, burst, width, specification=False):
+        s = spec.get_info()
+        size = int(s[n][id]["Size"],16)
+        if(size >= self.info["size"]):
+            print "ERROR! Size is too large for memory"
+        r = ET.Element("interface", attrib={"name": self.info["type"], "type":"slave", "address":str(hex(base)), "size":str(hex(size))})
+
+        # Check that the width is valid:
+        dqp2 = self.info["pow2_dq_pins"]
+        ratio_ok = False;
+        rate = Tinker.rate2int(self.info["rate"])
+        ratio = "notok"
+        for v in self.info["ratios"]:
+            if(width == int(rate * dqp2 / Tinker.ratio2float(v))):
+                ratio = Tinker.ratio2float(v)
+                ratio_ok = True
+                break
+        if(ratio is "not ok"):
+                print "ERROR: No possible fabric ratio for desired fabric width in System %s" % id
+                exit(1)
+        r.set("width", str(width))
+        r.set("burst", str(burst))
+
+        if(specification):
+            r.set("ratio", v)
+            r.set("role", s[n][id]["Role"])
+            # TODO: What about shared OCT pins?
+            if(s[n][id]["Role"] == "secondary"):
+                r.set("shared","pll,dll,oct")
+            else:
+                r.set("shared","")
+            r.set("max_frequency_mhz",str(self.info["fmax_mhz"]))
+            r.set("ref_frequency_mhz",str(self.info["fref_mhz"]))
+            
+        return r
+        
 def initialize(t, e, enum):
     if(t == "DDR3"):
        import DDR

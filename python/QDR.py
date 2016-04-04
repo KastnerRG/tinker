@@ -10,6 +10,15 @@ class QDR(Phy):
 
     def __parse_info(self, e, t, id):
         d = {}
+        d["type"] = "QDR"
+        fmax_mhz = e.get("fmax_mhz")
+        if(not Tinker.is_number(fmax_mhz)):
+            print (("ERROR: Maximum Frequency of type %s, is %s was %s, which is not a number.\n" +
+                        "Check the board-specific XML file") %
+                        (t, id, str(fmax)))
+            exit(1)
+        fmax_mhz = int(fmax_mhz)
+        d["fmax_mhz"] = fmax_mhz
 
         ap = e.get("address_pins");
         if(not Tinker.is_number(ap)):
@@ -43,7 +52,18 @@ class QDR(Phy):
         size = dqp2/8 * (2**ap) * b
         d["size"] = size
 
+        d["bandwidth_bs"] = fmax_mhz * 10*6 * 2 * dqp2 / 8
+        
         return d
 
     def set_params(self):
         pass
+
+    def print_info(self,l):
+        super(QDR,self).print_info(l)
+        print (l + 1)*"\t" + "Bandwidth: %d Bytes/Sec" % self.info["bandwidth_bs"]
+
+    def build_spec(self, spec, n , id, base, burst, width, specification=False):
+        r = super(QDR,self).build_spec(spec,n,id,base, burst, width, specification=specification)
+        # TODO: Add ports
+        return r

@@ -1,14 +1,15 @@
 import xml.etree.ElementTree as ET
-from collections import defaultdict
+from collections import defaultdict, Counter
 import Memory
-import Tinker 
+import Tinker
+import math
 
 class Board(ET.Element):
     def __init__(self, xml, version, name):
         super(Board, self).__init__("board")
         self.set("version", version)
         self.set("name", name)
-        self.types = []
+        self.types = {}
         self.info = self.parse_info(ET.parse(xml)) 
 
     def get_info(self):
@@ -16,59 +17,90 @@ class Board(ET.Element):
 
     def print_info(self,l):
         print l*"\t" + "Available Memories: " + str(self.info["types"])
-        for t in self.types:
-            t.print_info(l + 1)
+        for t,obj in self.types.iteritems():
+            obj.print_info(l + 1)
         
     def parse_info(self,xml):
         d = defaultdict();
         r = xml.getroot()
         d["version"] = r.get("version")
         n = r.get("name")
+        d["name"] = n
         d["types"] = []
+        d["model"] = r.get("model")
+
         for e in r.findall("./memory/[@type]"):
             mem = Memory.Memory(e);
-            self.types.append(mem)
             dm = mem.get_info()
             d[dm["type"]] = dm
             d["types"].append(dm["type"])
+            self.types[dm["type"]] = mem
+                        
         return d
 
-    def add_system(self, memory_name, max_bandwidth, interleaved_bytes, config_addr, num_memories, mem_constr, system_constr, sys_idx, base_addr, more_args, sys_type, quantity, mem_frequency_mhz, ref_frequency_mhz, ratio, role, sys_width, addr_width,**mem_args):
-        self.append(system_constr(memory_name, max_bandwidth, interleaved_bytes, config_addr, num_memories, mem_constr, sys_idx, base_addr, more_args, sys_type, quantity, mem_frequency_mhz, ref_frequency_mhz, ratio, role, sys_width, addr_width, **mem_args))
+    def build_spec(self, spec, version, specification=False, xmlfn = ""):
+        s = spec.get_info()
+        r = ET.Element("board", attrib={"version": version, "name":s["Name"]})
+        if(specification):
+            r.set("file", xmlfn)
 
+        base = 0
+        size_default = 0
+        for sys in s["Systems"]:
+            t = s[sys]["Type"]
+            m = self.types[t]
+            e = m.build_spec(spec,sys,base,specification=specification)
+            r.append(e)
+            for i in s[sys]["Interfaces"]:
+                base += int(s[sys][i]["Size"],16)
+                if(sys == "0"):
+                    size_default += int(s[sys][i]["Size"],16)
 
-    def write(self, filename, pretty):
-        # Add remaining elements of xml file
-        host = ET.Element('host')
-        kernel_config = ET.SubElement(host, 'kernel_config')
-        kernel_config.set('start', '0x00000000')
-        kernel_config.set('size', '0x0100000')
-        self.append(host)
-        interfaces = ET.Element('interfaces')
-        interface = ET.SubElement(interfaces, 'interface')
-        interface.set('name', 'acl_iface')
-        interface.set('port', 'kernel_cra')
-        interface.set('type', 'master')
-        interface.set('width', '64')
-        interface.set('misc', '0')
-        interface = ET.SubElement(interfaces, 'interface')
-        interface.set('name', 'acl_iface')
-        interface.set('port', 'kernel_irq')
-        interface.set('type', 'irq')
-        interface.set('width', '1')
-        interface = ET.SubElement(interfaces, 'interface')
-        interface.set('name', 'acl_iface')
-        interface.set('port', 'acl_internal_snoop')
-        interface.set('type', 'streamsource')
-        interface.set('enable', 'SNOOPENABLE')
-        interface.set('width', '32')
-        interface.set('clock', 'acl_iface.kernel_clk')
-        kernel_clk_reset = ET.SubElement(interfaces, 'kernel_clk_reset')
-        kernel_clk_reset.set('clk', 'acl_iface.kernel_clk')
-        kernel_clk_reset.set('clk2x', 'acl_iface.kernel_clk2x')
-        kernel_clk_reset.set('reset', 'acl_iface.kernel_reset')
-        self.append(interfaces)
+        # Summary of Resources
+        resources = Counter({"alms":0,
+                             "ffs":0,
+                             "rams":0,
+                             "dsps":0})
+        for sys in s["Systems"]:
+            t = s[sys]["Type"]
+            resources.update(self.info[t]["resources"])
+
+            for i in s[sys]["Interfaces"]:
+                resources.update(self.info[t][i]["resources"])
+        deve = ET.SubElement(r,"device", attrib={"device_model":self.info["model"]})
+        re = ET.SubElement(deve,"used_resources")
+        for rt,num in resources.iteritems():
+            ET.SubElement(re, rt, attrib={"num":str(num)})
+
+        # Host Interface
+        host = ET.SubElement(r,"host")
+        ET.SubElement(host,"kernel_config",attrib={"start":"0x00000000","size":"0x0100000"})
         
-        bsf = open(filename, "w")
-        bsf.write(pretty(self))
-        bsf.close()
+        # ACL Plumbing
+        intfs = ET.SubElement(r, "interfaces")
+        # TODO: board, not acl_iface
+        kernel_cra = ET.SubElement(intfs,"interface", attrib={"name":"board",
+                                                          "port":"kernel_cra",
+                                                          "type":"master",
+                                                          "width":"64",
+                                                          "misc":"0"}) # Purpose of misc?
+
+        kernel_irq = ET.SubElement(intfs,"interface", attrib={"name":"board",
+                                                          "port":"kernel_irq",
+                                                          "type":"irq",
+                                                          "width":"q"})
+        snoop = ET.SubElement(intfs,"interface", attrib={"name":"board",
+                                                     "port":"acl_internal_snoop",
+                                                     "type":"streamsource",
+                                                     "enable":"SNOOPENABLE",
+                                                     "clock":"board.kernel_clk",
+                                                     "width":str(int(math.log(size_default)/math.log(2)))})
+        kclk_rst = ET.SubElement(intfs,"kernel_clk_reset", attrib={"clk":"board.kernel_clk",
+                                                               "clk2x":"board.kernel_clk2x",
+                                                               "reset":"board.kernel_reset"})
+
+
+        return r
+
+
+

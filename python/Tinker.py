@@ -25,3 +25,17 @@ def prettify(elem):
 
 def clog2(i):
     return math.floor(math.log(i)/math.log(2))
+
+def rate2int(ratio):
+    if(ratio == "single"):
+        return 1
+    elif(ratio == "double"):
+        return 2
+
+def ratio2float(ratio):
+    if(ratio =="Full"):
+        return 1
+    if(ratio =="Half"):
+        return .5
+    if(ratio =="Quarter"):
+        return .25

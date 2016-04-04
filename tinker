@@ -5,7 +5,8 @@ import xml.etree.ElementTree as et
 from xml.dom import minidom
 
 import Board
-
+import Specification
+import Tinker
 def checkdist(tp):
     if(not os.path.exists(tp)):
         print "ERROR: Path %s does not exist", tp
@@ -21,8 +22,8 @@ def buildargs(par):
                     help="List the available board skeletons available to Tinker")
     par.add_argument("-i", "--get-board-info",nargs=2, action="store",metavar=("<version>","<board_name>"),
                     help="Get info about a specific board and version")
-    par.add_argument("-g","--generate", action="store",
-                    metavar="<path-to-specification>",
+    par.add_argument("-g","--generate", action="store",nargs=3,
+                    metavar=("<path-to-specification>","<version>","<board_name>"),
                     help="Generate a Board Support Package (BSP) using"+
                     "the specification within the text file")
 
@@ -85,10 +86,18 @@ if(args.list_boards):
     list_boards(tinker_path)
 elif(args.get_board_info):
     version = args.get_board_info[0]
-    name = args.get_board_info[1]
+    board = args.get_board_info[1]
     # TODO: Build path from XML file
-    b = Board.Board(tinker_path + "/boards/%s/%s/%s.xml" % (version,name,name), "14.1", "de5net")
+    b = Board.Board(tinker_path + "/boards/%s/%s/%s.xml" % (version,board,board), version, board)
     d = b.get_info()
-    print "Getting Info for Board %s, Version %s" % (name, version)
+    print "Getting Info for Board %s, Version %s" % (board, version)
     b.print_info(0)
+elif(args.generate):
+    path = args.generate[0]
+    version = args.generate[1]
+    board = args.generate[2]
+    b = Board.Board(tinker_path + "/boards/%s/%s/%s.xml" % (version,board,board), version, board)
+    s = Specification.Specification(path)
+    e = b.build_spec(s, version, specification=True)
 
+    print Tinker.prettify(e)

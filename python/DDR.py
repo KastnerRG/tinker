@@ -10,6 +10,15 @@ class DDR(Phy):
         
     def __parse_info(self, e, t, id):
         d = {}
+        d["type"] = "DDR"
+        fmax_mhz = e.get("fmax_mhz")
+        if(not Tinker.is_number(fmax_mhz)):
+            print (("ERROR: Maximum Frequency of type %s, is %s was %s, which is not a number.\n" +
+                        "Check the board-specific XML file") %
+                        (t, id, str(fmax)))
+            exit(1)
+        fmax_mhz = int(fmax_mhz)
+        d["fmax_mhz"] = fmax_mhz
 
         bp = e.get("bank_pins")
         if(not Tinker.is_number(bp)):
@@ -50,7 +59,20 @@ class DDR(Phy):
         
         size = dqp2/8 * (2**bp) * (2 ** cp) * (2 ** rp)
         d["size"] = size
+
+        d["bandwidth_bs"] = fmax_mhz * 10**6 * 2 * dqp2 / 8
+        #print d["bandwidth_bs"]/(1000000)
+        # TODO: Is bandwidth in bytes or megabytes / sec
+        
         return d
 
-    def set_params(self):
-        pass
+    def print_info(self,l):
+        super(DDR,self).print_info(l)
+        print (l + 1)*"\t" + "Bandwidth: %d Bytes/Sec" % self.info["bandwidth_bs"]
+
+    def build_spec(self, spec, n , id, base, burst, width, specification=False):
+        r = super(DDR,self).build_spec(spec,n,id,base, burst,width, specification=specification)
+        r.set("port","kernel_%s_ddr3%s_rw" % (n,id))
+        r.set("latency","240") # Standard, recommended by Altera
+        return r
+

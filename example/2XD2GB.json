@@ -1,8 +1,15 @@
-{"Board":"2XD2GB_4XQ8MB",
- {"System": "0",
- "Type":"DDR3",
- {"ID":"A",
-  "Role":"Primary"}
- {"ID":"B",
-  "Role":"Secondary", 
-  "Master":"A"}}}
+{"Name":"2XD2GB",
+ "Systems":["0"],
+ "0":{"System": "0",
+      "Interfaces":["a","b"],
+      "Type":"DDR3",
+      "Width":"512",
+      "a": {"ID":"a",
+	    "Role":"primary",
+	    "Size":"0x80000000"},
+      "b": {"ID":"b",
+	    "Role":"secondary", 
+	    "Master":"a",
+	    "Size":"0x80000000"}
+     }
+}
