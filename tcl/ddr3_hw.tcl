@@ -1,17 +1,47 @@
-package require -exact qsys 14.0
+# ----------------------------------------------------------------------
+# Copyright (c) 2016, The Regents of the University of California All
+# rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
+#       with the distribution.
+#
+#     * Neither the name of The Regents of the University of California
+#       nor the names of its contributors may be used to endorse or
+#       promote products derived from this software without specific
+#       prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL REGENTS OF THE
+# UNIVERSITY OF CALIFORNIA BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+# OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+# TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# ----------------------------------------------------------------------
+package require -exact qsys 14.1
 lappend auto_path $::env(TCLXML_PATH)
 package require xml
 
-# module properties
-set_module_property NAME {ddr3}
-set_module_property DISPLAY_NAME {ddr3}
-
-# default module properties
-set_module_property VERSION {1.0}
-set_module_property GROUP {Memory group}
+set_module_property NAME {ddr3_interface}
+set_module_property DISPLAY_NAME {Tinker DDR3 Hardware Interface}
+set_module_property VERSION {14.1}
+set_module_property GROUP {Tinker}
 set_module_property DESCRIPTION {default description}
-set_module_property AUTHOR {author}
-
+set_module_property AUTHOR {Dustin Richmond, Matthew Hogains, Kevin Thai, Jeremy Blackstone}
 set_module_property COMPOSITION_CALLBACK compose
 set_module_property opaque_address_map false
 
@@ -19,7 +49,7 @@ set_module_property opaque_address_map false
 # parameters
 #############################################################################
 add_parameter BOARD_PATH String "Board Path"
-set_parameter_property BOARD_PATH DEFAULT_VALUE a
+set_parameter_property BOARD_PATH DEFAULT_VALUE $::env(TINKER_PATH)
 set_parameter_property BOARD_PATH DISPLAY_NAME BOARD_PATH
 set_parameter_property BOARD_PATH TYPE STRING
 set_parameter_property BOARD_PATH UNITS None
@@ -237,7 +267,6 @@ proc compose { } {
 
     ############################################################################
     # Instances and instance parameters
-    # (disabled instances are intentionally culled)
     ############################################################################
     if {($role == "primary") || ($role == "independent")} {
 	add_instance ref_clk_bridge altera_clock_bridge 14.1
