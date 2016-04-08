@@ -83,10 +83,12 @@ proc compose { } {
     
     set board_path [get_parameter_value BOARD_PATH]
     set board_file $board_path/board_specification.xml
+    send_message info $board_file
+
     set board_fp [open $board_file]
     set board_dom [dom::parse [read $board_fp]]
 
-    set param_file $board_path/../[[dom::selectNode $board_dom /board/@file] stringValue]
+    set param_file $board_path/[[dom::selectNode $board_dom /board/@file] stringValue]
     set param_fp [open $param_file]
     set param_dom [dom::parse [read $param_fp]]
 
@@ -107,9 +109,9 @@ proc compose { } {
     set sys_id [get_parameter_value SYSTEM_IDENTIFIER]
 
     # Memory-system specific variables
-    set mem_clock_freq [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@mem_frequency_mhz] stringValue]
-    set ref_clock_freq [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@ref_frequency_mhz] stringValue]
-    set fabric_ratio [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@ratio] stringValue]
+    set mem_clock_freq [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@mem_frequency_mhz] stringValue]
+    set ref_clock_freq [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@ref_frequency_mhz] stringValue]
+    set fabric_ratio [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@ratio] stringValue]
 
     # Memory-specific parameters
     set bank_pins [[dom::selectNode $param_dom /board/memory\[@type="DDR3"\]/phy\[@id=\"$mem_id\"\]/@bank_pins] stringValue]
@@ -229,16 +231,16 @@ proc compose { } {
 	}
     } else {
 	if {"pll" in $shared_interfaces} {
-	    add_interface pll_sharing_$id conduit end
-	    set_interface_property pll_sharing_$id EXPORT_OF ddr3.pll_sharing
+	    add_interface pll_sharing_$mem_id conduit end
+	    set_interface_property pll_sharing_$mem_id EXPORT_OF ddr3.pll_sharing
 	} 
 	if {"dll" in $shared_interfaces} {
-	    add_interface dll_sharing_$id conduit end
-	    set_interface_property dll_sharing_$id EXPORT_OF ddr3.dll_sharing
+	    add_interface dll_sharing_$mem_id conduit end
+	    set_interface_property dll_sharing_$mem_id EXPORT_OF ddr3.dll_sharing
 	}
 	if {"oct" in $shared_interfaces} {
-	    add_interface oct_sharing_$id conduit end
-	    set_interface_property oct_sharing_$id EXPORT_OF ddr3.oct_sharing
+	    add_interface oct_sharing_$mem_id conduit end
+	    set_interface_property oct_sharing_$mem_id EXPORT_OF ddr3.oct_sharing
 	}
     }
 

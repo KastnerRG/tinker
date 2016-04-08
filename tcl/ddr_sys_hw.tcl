@@ -36,7 +36,7 @@ package require -exact qsys 14.1
 lappend auto_path $::env(TCLXML_PATH)
 package require xml
 
-set_module_property NAME {ddr3_system}
+set_module_property NAME {ddr_system}
 set_module_property DISPLAY_NAME {Tinker DDR Memory System}
 set_module_property VERSION {14.1}
 set_module_property GROUP {Tinker}
@@ -69,6 +69,8 @@ proc compose { } {
     set symbol_width 8
     set board_path [get_parameter_value BOARD_PATH]
     set board_file $board_path/board_specification.xml
+    send_message info $board_file
+
     set board_fp [open $board_file]
     set board_dom [dom::parse [read $board_fp]]
 
@@ -116,32 +118,32 @@ proc compose { } {
 
     # Memorg Conduit
     add_interface acl_internal_snoop avalon_streaming source
-    set_interface_property acl_internal_snoop EXPORT_OF acl_memory_bank_divider_$sys_id.acl_bsp_snoop
+    set_interface_property acl_internal_snoop EXPORT_OF acl_memory_bank_divider.acl_bsp_snoop
 
     if {$num_memories > 1} {
-	add_interface acl_bsp_memorg_$sys_id conduit end
-	set_interface_property acl_bsp_memorg_$sys_id EXPORT_OF acl_memory_bank_divider_$sys_id.acl_bsp_memorg_host
+	add_interface memorg_host conduit end
+	set_interface_property memorg_host EXPORT_OF acl_memory_bank_divider.acl_bsp_memorg_host
     }
 
     # System DMA clock, reset, and data interfaces
     if {$sys_role == "secondary"} {
-	add_interface dma_$sys_id\_rw avalon slave
-	set_interface_property dma_$sys_id\_rw EXPORT_OF dma_$sys_id\_clock_crossing_bridge.s0
+	add_interface dma_rw avalon slave
+	set_interface_property dma_rw EXPORT_OF dma_$sys_id\_clock_crossing_bridge.s0
 
-	add_interface dma_$sys_id\_clk clock sink
-	set_interface_property dma_$sys_id\_clk EXPORT_OF dma_$sys_id\_clock_crossing_bridge.s0_clk
+	add_interface dma_clk clock sink
+	set_interface_property dma__clk EXPORT_OF dma_$sys_id\_clock_crossing_bridge.s0_clk
 
-	add_interface dma_$sys_id\_reset reset sink
-	set_interface_property dma_$sys_id\_reset EXPORT_OF dma_$sys_id\_clock_crossing_bridge.s0_reset
+	add_interface dma_reset reset sink
+	set_interface_property dma_reset EXPORT_OF dma_$sys_id\_clock_crossing_bridge.s0_reset
     } else {
-	add_interface dma_$sys_id\_rw avalon slave
-	set_interface_property dma_$sys_id\_rw EXPORT_OF dma_$sys_id\_pipe_stage.s0
+	add_interface dma_rw avalon slave
+	set_interface_property dma_rw EXPORT_OF dma_$sys_id\_pipe_stage.s0
     }
 
     # Memory Kernel, Pin, and clock interfaces
     foreach mem_id $memory_ids {
 	set mem_id_role [[dom::selectNode $board_dom /board/global_mem\[@type="DDR3"\]\[@sys_id=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@role] stringValue]
-
+	send_message info $mem_id_role
 	# Kernel read/write interface
 	add_interface kernel_$sys_id\_if_$mem_id\_rw avalon slave
 	set_interface_property kernel_$sys_id\_if_$mem_id\_rw EXPORT_OF if_$mem_id.kernel_rw
@@ -156,23 +158,23 @@ proc compose { } {
 
 	if {$mem_id_role == "primary"} {
 	    add_interface ddr3_$mem_id\_pll_ref clock sink
-	    set_interface_property ddr3_$mem_id\_pll_ref EXPORT_OF ddr3_$mem_id\.ref_clk
+	    set_interface_property ddr3_$mem_id\_pll_ref EXPORT_OF if_$mem_id\.ref_clk
 
 	    add_interface ddr3_$mem_id\_oct conduit end
-	    set_interface_property ddr3_$mem_id\_oct EXPORT_OF ddr3_$mem_id\.oct
+	    set_interface_property ddr3_$mem_id\_oct EXPORT_OF if_$mem_id\.oct
 	}
 
 	if {$mem_id_role == "independent"} {
 	    set shared_interfaces [split [[dom::selectNode $board_dom /board/global_mem\[@type="DDR3"\]/interface\[@id=\"$mem_id\"\]/@shared] stringValue] ","]
 	    
 	    if {!("pll" in $shared_interfaces)} {
-		add_interface if_$mem_id\_pll_ref clock sink
-		set_interface_property if_$mem_id\_pll_ref EXPORT_OF if_$mem_id\.ref_clk
+		add_interface ddr3_if_$mem_id\_pll_ref clock sink
+		set_interface_property ddr3_if_$mem_id\_pll_ref EXPORT_OF if_$mem_id\.ref_clk
 	    } 
 
 	    if {!("oct" in $shared_interfaces)} {
-		add_interface if_$mem_id\_oct conduit end
-		set_interface_property if_$mem_id\_oct EXPORT_OF if_$mem_id\.oct
+		add_interface ddr3_if_$mem_id\_oct conduit end
+		set_interface_property ddr3_if_$mem_id\_oct EXPORT_OF if_$mem_id\.oct
 	    }
 	}
     }
@@ -204,14 +206,14 @@ proc compose { } {
     set_instance_parameter_value global_reset_bridge {NUM_RESET_OUTPUTS} {1}
     set_instance_parameter_value global_reset_bridge {USE_RESET_REQUEST} {0}
 
-    add_instance acl_memory_bank_divider_$sys_id acl_memory_bank_divider 1.0
-    set_instance_parameter_value acl_memory_bank_divider_$sys_id {NUM_BANKS} $num_memories
-    set_instance_parameter_value acl_memory_bank_divider_$sys_id {SEPARATE_RW_PORTS} {0}
-    set_instance_parameter_value acl_memory_bank_divider_$sys_id {PIPELINE_OUTPUTS} {0}
-    set_instance_parameter_value acl_memory_bank_divider_$sys_id {DATA_WIDTH} $data_width
-    set_instance_parameter_value acl_memory_bank_divider_$sys_id {ADDRESS_WIDTH} $address_width
-    set_instance_parameter_value acl_memory_bank_divider_$sys_id {BURST_SIZE} $sys_burst
-    set_instance_parameter_value acl_memory_bank_divider_$sys_id {MAX_PENDING_READS} {64}
+    add_instance acl_memory_bank_divider acl_memory_bank_divider 1.0
+    set_instance_parameter_value acl_memory_bank_divider {NUM_BANKS} $num_memories
+    set_instance_parameter_value acl_memory_bank_divider {SEPARATE_RW_PORTS} {0}
+    set_instance_parameter_value acl_memory_bank_divider {PIPELINE_OUTPUTS} {0}
+    set_instance_parameter_value acl_memory_bank_divider {DATA_WIDTH} $data_width
+    set_instance_parameter_value acl_memory_bank_divider {ADDRESS_WIDTH} $address_width
+    set_instance_parameter_value acl_memory_bank_divider {BURST_SIZE} $sys_burst
+    set_instance_parameter_value acl_memory_bank_divider {MAX_PENDING_READS} {64}
 
     if {$sys_role == "secondary"} {
 	add_instance dma_$sys_id\_clock_crossing_bridge altera_avalon_mm_clock_crossing_bridge 14.1
@@ -240,20 +242,20 @@ proc compose { } {
     }
 
     foreach id $memory_ids {
-	add_instance if_$mem_id ddr3_interface 1.0
-	set_instance_parameter_value if_$mem_id {BOARD_PATH} $board_path
-	set_instance_parameter_value if_$mem_id {MEMORY_IDENTIFIER} $mem_id
-	set_instance_parameter_value if_$mem_id {SYSTEM_IDENTIFIER} $sys_id
+	add_instance if_$id ddr3_interface 1.0
+	set_instance_parameter_value if_$id {BOARD_PATH} $board_path
+	set_instance_parameter_value if_$id {MEMORY_IDENTIFIER} $id
+	set_instance_parameter_value if_$id {SYSTEM_IDENTIFIER} $sys_id
     }
 
     ############################################################################
     # connections and connection parameters
     ############################################################################
-    add_connection kernel_clk_bridge.clk acl_memory_bank_divider_$sys_id.kernel_clk clock
-    add_connection kernel_clk_bridge.clk_reset acl_memory_bank_divider_$sys_id.kernel_reset reset
+    add_connection kernel_clk_bridge.clk acl_memory_bank_divider.kernel_clk clock
+    add_connection kernel_clk_bridge.clk_reset acl_memory_bank_divider.kernel_reset reset
 
-    add_connection if_$primary_id.afi_clk acl_memory_bank_divider_$sys_id.clk clock
-    add_connection if_$primary_id.afi_reset acl_memory_bank_divider_$sys_id.reset reset
+    add_connection if_$primary_id.afi_clk acl_memory_bank_divider.clk clock
+    add_connection if_$primary_id.afi_reset acl_memory_bank_divider.reset reset
 
     add_connection if_$primary_id.afi_clk system_clk_bridge.clk_in clock
     add_connection if_$primary_id.afi_reset system_clk_bridge.clk_in_reset reset
@@ -262,58 +264,60 @@ proc compose { } {
 	add_connection if_$primary_id.afi_clk dma_$sys_id\_clock_crossing_bridge.m0_clk clock
 	add_connection if_$primary_id.memory_reset dma_$sys_id\_clock_crossing_bridge.m0_reset reset
 
-	add_connection dma_$sys_id\_clock_crossing_bridge.m0 acl_memory_bank_divider_$sys_id.s avalon
-	set_connection_parameter_value dma_$sys_id\_clock_crossing_bridge.m0/acl_memory_bank_divider_$sys_id.s arbitrationPriority {1}
-	set_connection_parameter_value dma_$sys_id\_clock_crossing_bridge.m0/acl_memory_bank_divider_$sys_id.s baseAddress {0x0000}
-	set_connection_parameter_value dma_$sys_id\_clock_crossing_bridge.m0/acl_memory_bank_divider_$sys_id.s defaultConnection {0}
+	add_connection dma_$sys_id\_clock_crossing_bridge.m0 acl_memory_bank_divider.s avalon
+	set_connection_parameter_value dma_$sys_id\_clock_crossing_bridge.m0/acl_memory_bank_divider.s arbitrationPriority {1}
+	set_connection_parameter_value dma_$sys_id\_clock_crossing_bridge.m0/acl_memory_bank_divider.s baseAddress {0x0000}
+	set_connection_parameter_value dma_$sys_id\_clock_crossing_bridge.m0/acl_memory_bank_divider.s defaultConnection {0}
     } else {
 	add_connection if_$primary_id.afi_clk dma_$sys_id\_pipe_stage.clk
 	add_connection if_$primary_id.memory_reset dma_$sys_id\_pipe_stage.reset
 
-	add_connection dma_$sys_id\_pipe_stage.m0 acl_memory_bank_divider_$sys_id.s avalon
-	set_connection_parameter_value dma_$sys_id\_pipe_stage.m0/acl_memory_bank_divider_$sys_id.s arbitrationPriority {1}
-	set_connection_parameter_value dma_$sys_id\_pipe_stage.m0/acl_memory_bank_divider_$sys_id.s baseAddress {0x0000}
-	set_connection_parameter_value dma_$sys_id\_pipe_stage.m0/acl_memory_bank_divider_$sys_id.s defaultConnection {0}
+	add_connection dma_$sys_id\_pipe_stage.m0 acl_memory_bank_divider.s avalon
+	set_connection_parameter_value dma_$sys_id\_pipe_stage.m0/acl_memory_bank_divider.s arbitrationPriority {1}
+	set_connection_parameter_value dma_$sys_id\_pipe_stage.m0/acl_memory_bank_divider.s baseAddress {0x0000}
+	set_connection_parameter_value dma_$sys_id\_pipe_stage.m0/acl_memory_bank_divider.s defaultConnection {0}
     }
 
     set i 0
     foreach id $memory_ids {
 	set i [expr {$i + 1}]
 
-	add_connection kernel_clk_bridge.clk if_$mem_id.kernel_clk clock
-	add_connection kernel_clk_bridge.clk_reset if_$mem_id.kernel_reset reset
-	add_connection sw_kernel_reset_bridge.out_reset if_$mem_id.sw_kernel_reset reset
-	add_connection global_reset_bridge.out_reset if_$mem_id.global_reset
+	add_connection kernel_clk_bridge.clk if_$id.kernel_clk clock
+	add_connection kernel_clk_bridge.clk_reset if_$id.kernel_reset reset
+	add_connection sw_kernel_reset_bridge.out_reset if_$id.sw_kernel_reset reset
+	add_connection global_reset_bridge.out_reset if_$id.global_reset
 
-	add_connection acl_memory_bank_divider_$sys_id.bank$i if_$mem_id.dma_rw avalon
-	set_connection_parameter_value acl_memory_bank_divider_$sys_id.bank$i/if_$mem_id.dma_rw arbitrationPriority {1}
-	set_connection_parameter_value acl_memory_bank_divider_$sys_id.bank$i/if_$mem_id.dma_rw baseAddress {0x0000}
-	set_connection_parameter_value acl_memory_bank_divider_$sys_id.bank$i/if_$mem_id.dma_rw defaultConnection {0}
+	add_connection acl_memory_bank_divider.bank$i if_$id.dma_rw avalon
+	set_connection_parameter_value acl_memory_bank_divider.bank$i/if_$id.dma_rw arbitrationPriority {1}
+	set_connection_parameter_value acl_memory_bank_divider.bank$i/if_$id.dma_rw baseAddress {0x0000}
+	set_connection_parameter_value acl_memory_bank_divider.bank$i/if_$id.dma_rw defaultConnection {0}
 
 	set board_file $board_path/board_specification.xml
+	send_message info $board_file
+
 	set board_fp [open $board_file]
 	set board_dom [dom::parse [read $board_fp]]
 
-	foreach dep [dom::selectNode $board_dom /board/global_mem\[@type="DDR3"\]\[@sys_id=\"$sys_id\"\]/*\[@primary=\"$mem_id\"\]/@id] {
+	foreach dep [dom::selectNode $board_dom /board/global_mem\[@type="DDR3"\]\[@sys_id=\"$sys_id\"\]/*\[@primary=\"$id\"\]/@id] {
 	    set dep_id [$dep stringValue]
 	    set shared_node [[dom::selectNode $board_dom /board/global_mem\[@type="DDR3"\]\[@sys_id=\"$sys_id\"\]/*\[@id=\"$dep_id\"\]/@shared] stringValue]
 	    set shared_interfaces [split [[dom::selectNode $board_dom /board/global_mem\[@type="DDR3"\]/interface\[@id=\"$dep_id\"\]/@shared] stringValue] ","]
 
 	    foreach interface $shared_interfaces {
-		add_connection if_$mem_id.$interface\_sharing_$dep_id if_$dep_id.$interface\_sharing_$dep_id conduit
-		set_connection_parameter_value if_$mem_id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id endPort {}
-		set_connection_parameter_value if_$mem_id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id endPortLSB {0}
-		set_connection_parameter_value if_$mem_id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id startPort {}
-		set_connection_parameter_value if_$mem_id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id startPortLSB {0}
-		set_connection_parameter_value if_$mem_id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id width {0}
+		add_connection if_$id.$interface\_sharing_$dep_id if_$dep_id.$interface\_sharing_$dep_id conduit
+		set_connection_parameter_value if_$id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id endPort {}
+		set_connection_parameter_value if_$id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id endPortLSB {0}
+		set_connection_parameter_value if_$id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id startPort {}
+		set_connection_parameter_value if_$id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id startPortLSB {0}
+		set_connection_parameter_value if_$id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id width {0}
 	    }
 
 	    if {"pll" in $shared_interfaces} {
-		add_connection if_$mem_id.memory_reset if_$dep_id.dma_reset reset
-		add_connection if_$mem_id.afi_clk if_$dep_id.dma_clk clock
-		add_connection if_$mem_id.afi_clk if_$dep_id.afi_clk clock
-		add_connection if_$mem_id.afi_reset if_$dep_id.afi_reset reset
-		add_connection if_$mem_id.afi_half_clk if_$dep_id.afi_half_clk clock
+		add_connection if_$id.memory_reset if_$dep_id.dma_reset reset
+		add_connection if_$id.afi_clk if_$dep_id.dma_clk clock
+		add_connection if_$id.afi_clk if_$dep_id.afi_clk clock
+		add_connection if_$id.afi_reset if_$dep_id.afi_reset reset
+		add_connection if_$id.afi_half_clk if_$dep_id.afi_half_clk clock
 	    }
 	}
     }

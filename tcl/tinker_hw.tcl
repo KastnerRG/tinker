@@ -37,8 +37,8 @@
 # TODO: The data width on the DMA path is currently set to 512, but could be set
 # to whatever the largest interface provides. 
 # TODO: There could be a better way to specify OCT pins (currently, you need to
-# know the type of the memory to name them)
-
+# know the type of the memory to name them). For instance, they could be read
+# from the XML.
 # TODO: The kernel reference clock frequency could be provided by the
 # Board-Specific XML file. Right now it is set to 50 MHz
 
@@ -67,6 +67,7 @@ proc compose { } {
     set bsp_path [get_parameter_value BOARD_PATH]
     set spec_file $bsp_path/board_specification.xml
     set spec_fp [open $spec_file]
+    send_message info $spec_file
     set spec_dom [dom::parse [read $spec_fp]]
 
     set board_file_name [[dom::selectNode $spec_dom /board/@file] stringValue]
@@ -83,7 +84,7 @@ proc compose { } {
 	set sys_type [[dom::selectNode $spec_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/@type] stringValue]
 	set intf_config_addr [[dom::selectNode $spec_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/@config_addr] stringValue]
 	dict set mem_dict $sys_id config_addr $intf_config_addr
-
+	set base_address [[dom::selectNode $spec_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/@base_address] stringValue]
 	lappend system_ids $sys_id
 	if {![string match $sys_id $primary_id]} {
 	    lappend secondary_ids $sys_id
@@ -107,6 +108,7 @@ proc compose { } {
 	    }
 	    dict set mem_dict $sys_id interfaces $interfaces
 	    dict set mem_dict $sys_id $intf role $intf_role
+	    dict set mem_dict $sys_id address $base_address
 	}
     }
 
@@ -154,102 +156,42 @@ proc compose { } {
     add_interface pcie_refclk clock sink
     set_interface_property pcie_refclk EXPORT_OF pcie.refclk
 
-    add_interface reconfig_from_xcvr conduit end
+    add_interface pcie_reconfig_from_xcvr conduit end
     set_interface_property pcie_reconfig_from_xcvr EXPORT_OF pcie.reconfig_from_xcvr
 
-    add_interface reconfig_to_xcvr conduit end
+    add_interface pcie_reconfig_to_xcvr conduit end
     set_interface_property pcie_reconfig_to_xcvr EXPORT_OF pcie.reconfig_to_xcvr
 
     # DDR / QDR, Memory-system specific
     # Conduit name is the concatentation of system type, and id (in lower case)
     foreach sys_id $system_ids {
+	set if_type [string tolower [dict get $mem_dict $sys_id type]]
 	foreach if_id [dict get $mem_dict $sys_id interfaces] {
+
 	    # Export Physical Pins
-	    add_interface if_$if_id conduit end
-	    set_interface_property if_$if_id EXPORT_OF system_$sys_id.if_$if_id
-	    set if_type [string tolower [dict get $mem_dict $sys_id type]]
+	    add_interface $if_type\_$if_id conduit end
+	    set_interface_property $if_type\_$if_id EXPORT_OF system_$sys_id.if_$if_id
 
 	    # Export PLL Reference 
 	    if {[string match [dict get $mem_dict $sys_id $if_id role] "primary"] ||
 		[string match [dict get $mem_dict $sys_id $if_id role] "independent"]} {
 		add_interface $if_type\_$if_id\_pll_ref clock sink
-		set_interface_property $if_type\_$if_id\_pll_ref EXPORT_OF system_$sys_id.if_$if_id\_pll_ref
+		set_interface_property $if_type\_$if_id\_pll_ref EXPORT_OF system_$sys_id.$if_type\_$if_id\_pll_ref
 	    }
+
 	    # OCT Pins
-	    # TODO: Use OCT pin names from XML?
 	    if {[string match [dict get $mem_dict $sys_id $if_id role] "primary"]} {
 		add_interface $if_type\_$if_id\_oct conduit end
 		set_interface_property $if_type\_$if_id\_oct EXPORT_OF system_$sys_id.$if_type\_$if_id\_oct
 	    }
+
 	    # Kernel Interfaces
-	    foreach port in [dict get $mem_dict $sys_id $if_id ports] {
+	    foreach port [dict get $mem_dict $sys_id $if_id ports] {
 		add_interface $port avalon slave
 		set_interface_property $port EXPORT_OF system_$sys_id.$port
 	    }
 	}
     }
-    # add_interface if_a conduit end
-    # set_interface_property if_a EXPORT_OF system_0.if_a
-
-    # add_interface if_a_oct conduit end
-    # set_interface_property if_a_oct EXPORT_OF system_0.if_a_oct
-
-    # add_interface if_a_pll_ref clock sink
-    # set_interface_property if_a_pll_ref EXPORT_OF system_0.if_a_pll_ref
-
-    # add_interface if_b conduit end
-    # set_interface_property if_b EXPORT_OF system_0.if_b
-
-    # add_interface if_a conduit end
-    # set_interface_property if_a EXPORT_OF system_1.if_a
-
-    # add_interface if_b conduit end
-    # set_interface_property if_b EXPORT_OF system_1.if_b
-
-    # add_interface if_b_oct conduit end
-    # set_interface_property if_b_oct EXPORT_OF system_1.if_b_oct
-
-    # add_interface if_b_pll_ref clock sink
-    # set_interface_property if_b_pll_ref EXPORT_OF system_1.if_b_pll_ref
-
-    # add_interface if_c conduit end
-    # set_interface_property if_c EXPORT_OF system_1.if_c
-
-    # add_interface if_d conduit end
-    # set_interface_property if_d EXPORT_OF system_1.if_d
-
-    # add_interface if_d_pll_ref clock sink
-    # set_interface_property if_d_pll_ref EXPORT_OF system_1.if_d_pll_ref
-
-    # add_interface kernel_sys_0_if_a_rw avalon slave
-    # set_interface_property kernel_sys_0_if_a_rw EXPORT_OF system_0.kernel_sys_0_if_a_rw
-
-    # add_interface kernel_sys_0_if_b_rw avalon slave
-    # set_interface_property kernel_sys_0_if_b_rw EXPORT_OF system_0.kernel_sys_0_if_b_rw
-
-    # add_interface kernel_sys_1_if_a_r avalon slave
-    # set_interface_property kernel_sys_1_if_a_r EXPORT_OF system_1.kernel_sys_1_if_a_r
-
-    # add_interface kernel_sys_1_if_a_w avalon slave
-    # set_interface_property kernel_sys_1_if_a_w EXPORT_OF system_1.kernel_sys_1_if_a_w
-
-    # add_interface kernel_sys_1_if_b_r avalon slave
-    # set_interface_property kernel_sys_1_if_b_r EXPORT_OF system_1.kernel_sys_1_if_b_r
-
-    # add_interface kernel_sys_1_if_b_w avalon slave
-    # set_interface_property kernel_sys_1_if_b_w EXPORT_OF system_1.kernel_sys_1_if_b_w
-
-    # add_interface kernel_sys_1_if_c_r avalon slave
-    # set_interface_property kernel_sys_1_if_c_r EXPORT_OF system_1.kernel_sys_1_if_c_r
-
-    # add_interface kernel_sys_1_if_c_w avalon slave
-    # set_interface_property kernel_sys_1_if_c_w EXPORT_OF system_1.kernel_sys_1_if_c_w
-
-    # add_interface kernel_sys_1_if_d_r avalon slave
-    # set_interface_property kernel_sys_1_if_d_r EXPORT_OF system_1.kernel_sys_1_if_d_r
-
-    # add_interface kernel_sys_1_if_d_w avalon slave
-    # set_interface_property kernel_sys_1_if_d_w EXPORT_OF system_1.kernel_sys_1_if_d_w
 
     ############################################################################
     # Instances and instance parameters
@@ -460,7 +402,7 @@ proc compose { } {
     set_instance_parameter_value pcie {RXM_BEN_WIDTH} {8}
     set_instance_parameter_value pcie {use_rx_st_be_hwtcl} {0}
     set_instance_parameter_value pcie {use_ast_parity} {0}
-    set_instance_parameter_value pcie {hip_reconfig_hwtcl} {0}
+    set_instance_parameter_value pcie {hip_reconfig_hwtcl} {1}
     set_instance_parameter_value pcie {vsec_id_hwtcl} {40960}
     set_instance_parameter_value pcie {vsec_rev_hwtcl} {0}
     set_instance_parameter_value pcie {expansion_base_address_register_hwtcl} {0}
@@ -575,7 +517,7 @@ proc compose { } {
 
     add_instance uniphy_status uniphy_status 10.0
     set_instance_parameter_value uniphy_status {WIDTH} {32}
-    set_instance_parameter_value uniphy_status {NUM_UNIPHYS} {$num_intfs}
+    set_instance_parameter_value uniphy_status {NUM_UNIPHYS} $num_intfs
 
     add_instance clock_cross_temp_to_pcie altera_avalon_mm_clock_crossing_bridge 14.1
     set_instance_parameter_value clock_cross_temp_to_pcie {DATA_WIDTH} {32}
@@ -891,13 +833,19 @@ proc compose { } {
     set_instance_parameter_value dma {DATA_WIDTH} {512}
     set_instance_parameter_value dma {BURST_SIZE} {16}
 
-    add_instance system_0 if__system 1.0
-    set_instance_parameter_value system_0 {BOARD_PATH} {/home/drichmond//Research/repositories/git/Tinker/board/de5net/de5_2XD2GB_4XQ8MB/}
-    set_instance_parameter_value system_0 {MEMORY_INDEX} {0}
-
-    add_instance system_1 qdrii_system 1.0
-    set_instance_parameter_value system_1 {BOARD_PATH} {/home/drichmond//Research/repositories/git/Tinker/board/de5net/de5_2XD2GB_4XQ8MB/}
-    set_instance_parameter_value system_1 {MEMORY_INDEX} {1}
+    foreach sys_id $system_ids {
+	set if_type [string tolower [dict get $mem_dict $sys_id type]]
+	if {[string match $if_type "qdrii"]} {
+	    send_message info $bsp_path
+	    add_instance system_$sys_id qdr_system 14.1
+	    set_instance_parameter_value system_$sys_id {BOARD_PATH} $bsp_path
+	    set_instance_parameter_value system_$sys_id {MEMORY_SYS_ID} $sys_id
+	} elseif {[string match $if_type "ddr3"]} {
+	    add_instance system_$sys_id ddr_system 14.1
+	    set_instance_parameter_value system_$sys_id {BOARD_PATH} $bsp_path
+	    set_instance_parameter_value system_$sys_id {MEMORY_SYS_ID} $sys_id
+	}
+    }
 
     ############################################################################
     # connections and connection parameters (Organized by source)
@@ -918,8 +866,9 @@ proc compose { } {
 
     add_connection global_reset.out_reset acl_kernel_clk.reset reset
     add_connection global_reset.out_reset clock_cross_aclkernelclk_to_pcie.m0_reset reset
-    add_connection global_reset.out_reset system_0.global_reset reset
-    add_connection global_reset.out_reset system_1.global_reset reset
+    foreach sys_id $system_ids {
+	add_connection global_reset.out_reset system_$sys_id.global_reset reset
+    }
     add_connection global_reset.out_reset reset_controller_temp.reset_in0 reset
     add_connection global_reset.out_reset temperature_pll.reset reset
     add_connection global_reset.out_reset reset_controller_pcie.reset_in0 reset
@@ -1093,9 +1042,10 @@ proc compose { } {
 
     # Memory Systems
     foreach sys_id $system_ids {
+	set base_address [dict get $mem_dict $sys_id address]
 	add_connection dma.m system_$sys_id.dma_rw avalon
 	set_connection_parameter_value dma.m/system_$sys_id.dma_rw arbitrationPriority {1}
-	set_connection_parameter_value dma.m/system_$sys_id.dma_rw baseAddress {0x0000}
+	set_connection_parameter_value dma.m/system_$sys_id.dma_rw baseAddress $base_address
 	set_connection_parameter_value dma.m/system_$sys_id.dma_rw defaultConnection {0}
     }
 
@@ -1105,24 +1055,27 @@ proc compose { } {
 	set quantity [dict get $mem_dict $sys_id interfaces]
 	# handles odd requirement Dictated by Altera OpenCL
 	if {$quantity > 1} {
-	    add_connection kernel_interface.mem_org_mode_$config_addr system_$sys_id.memorg conduit
-	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr/system_$sys_id.memorg endPort {}
-	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr/system_$sys_id.memorg endPortLSB {0}
-	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr/system_$sys_id.memorg startPort {}
-	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr/system_$sys_id.memorg startPortLSB {0}
-	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr/system_$sys_id.memorg width {0}
+	    add_connection kernel_interface.mem_org_mode_$config_addr\_host system_$sys_id.memorg_host conduit
+	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr\_host/system_$sys_id.memorg_host endPort {}
+	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr\_host/system_$sys_id.memorg_host endPortLSB {0}
+	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr\_host/system_$sys_id.memorg_host startPort {}
+	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr\_host/system_$sys_id.memorg_host startPortLSB {0}
+	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr\_host/system_$sys_id.memorg_host width {0}
 	}
     }
 
     # Uniphy status
+    set idx 0
     foreach sys_id $system_ids {
 	foreach if_id [dict get $mem_dict $sys_id interfaces] {
-	    add_connection uniphy_status.mem$sys_id\_status system_$sys_id.if_a_status conduit
-	    set_connection_parameter_value uniphy_status.mem$sys_id\_status/system_$sys_id.if_$if_id\_status endPort {}
-	    set_connection_parameter_value uniphy_status.mem$sys_id\_status/system_$sys_id.if_$if_id\_status endPortLSB {0}
-	    set_connection_parameter_value uniphy_status.mem$sys_id\_status/system_$sys_id.if_$if_id\_status startPort {}
-	    set_connection_parameter_value uniphy_status.mem$sys_id\_status/system_$sys_id.if_$if_id\_status startPortLSB {0}
-	    set_connection_parameter_value uniphy_status.mem$sys_id\_status/system_$sys_id.if_$if_id\_status width {0}
+	    add_connection uniphy_status.mem$idx\_status system_$sys_id.if_$if_id\_status conduit
+	    set_connection_parameter_value uniphy_status.mem$idx\_status/system_$sys_id.if_$if_id\_status endPort {}
+	    set_connection_parameter_value uniphy_status.mem$idx\_status/system_$sys_id.if_$if_id\_status endPortLSB {0}
+	    set_connection_parameter_value uniphy_status.mem$idx\_status/system_$sys_id.if_$if_id\_status startPort {}
+	    set_connection_parameter_value uniphy_status.mem$idx\_status/system_$sys_id.if_$if_id\_status startPortLSB {0}
+	    set_connection_parameter_value uniphy_status.mem$idx\_status/system_$sys_id.if_$if_id\_status width {0}
+	    incr idx
+
 	}
 	# interconnect requirements
 	set_interconnect_requirement {$system} {qsys_mm.clockCrossingAdapter} {HANDSHAKE}

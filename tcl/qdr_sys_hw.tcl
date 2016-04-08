@@ -73,6 +73,7 @@ proc compose { } {
     set symbol_width 8
     set board_path [get_parameter_value BOARD_PATH]
     set board_file $board_path/board_specification.xml
+    send_message info $board_file
     set board_fp [open $board_file]
     set board_dom [dom::parse [read $board_fp]]
 
@@ -123,8 +124,8 @@ proc compose { } {
     set_interface_property snoop EXPORT_OF acl_memory_bank_divider.acl_bsp_snoop
 
     if {$num_memories > 1} {
-	add_interface memorg conduit end
-	set_interface_property memorg EXPORT_OF acl_memory_bank_divider.acl_bsp_memorg_host
+	add_interface memorg_host conduit end
+	set_interface_property memorg_host EXPORT_OF acl_memory_bank_divider.acl_bsp_memorg_host
     }
 
     # System DMA clock, reset, and data interfaces
@@ -163,23 +164,23 @@ proc compose { } {
 
 	if {$mem_id_role == "primary"} {
 	    add_interface qdrii_$mem_id\_pll_ref clock sink
-	    set_interface_property if_$mem_id\_pll_ref EXPORT_OF if_$mem_id\.ref_clk
+	    set_interface_property qdrii_$mem_id\_pll_ref EXPORT_OF if_$mem_id\.ref_clk
 
 	    add_interface qdrii_$mem_id\_oct conduit end
-	    set_interface_property if_$mem_id\_oct EXPORT_OF if_$mem_id\.oct
+	    set_interface_property qdrii_$mem_id\_oct EXPORT_OF if_$mem_id\.oct
 	}
 
 	if {$mem_id_role == "independent"} {
 	    set shared_interfaces [split [[dom::selectNode $board_dom /board/global_mem\[@type="QDRII"\]/interface\[@id=\"$mem_id\"\]/@shared] stringValue] ","]
 	    
 	    if {!("pll" in $shared_interfaces)} {
-		add_interface if_$mem_id\_pll_ref clock sink
-		set_interface_property if_$mem_id\_pll_ref EXPORT_OF if_$mem_id\.ref_clk
+		add_interface qdrii_$mem_id\_pll_ref clock sink
+		set_interface_property qdrii_$mem_id\_pll_ref EXPORT_OF if_$mem_id\.ref_clk
 	    } 
 
 	    if {!("oct" in $shared_interfaces)} {
-		add_interface if_$mem_id\_oct conduit end
-		set_interface_property if_$mem_id\_oct EXPORT_OF if_$mem_id\.oct
+		add_interface qdrii_$mem_id\_oct conduit end
+		set_interface_property qdrii_$mem_id\_oct EXPORT_OF if_$mem_id\.oct
 	    }
 	}
     }
@@ -247,10 +248,10 @@ proc compose { } {
     }
 
     foreach id $memory_ids {
-	add_instance if_$mem_id qdr1 1.0
-	set_instance_parameter_value if_$mem_id {BOARD_PATH} $board_path
-	set_instance_parameter_value if_$mem_id {MEMORY_IDENTIFIER} $mem_id
-	set_instance_parameter_value if_$mem_id {SYSTEM_IDENTIFIER} $sys_id
+	add_instance if_$id qdrii_interface 1.0
+	set_instance_parameter_value if_$id {BOARD_PATH} $board_path
+	set_instance_parameter_value if_$id {MEMORY_IDENTIFIER} $id
+	set_instance_parameter_value if_$id {SYSTEM_IDENTIFIER} $sys_id
     }
 
     ############################################################################
@@ -286,47 +287,49 @@ proc compose { } {
     foreach id $memory_ids {
 	set i [expr {$i + 1}]
 
-	add_connection kernel_clk_bridge.clk if_$mem_id.kernel_clk clock
-	add_connection kernel_clk_bridge.clk_reset if_$mem_id.kernel_reset reset
-	add_connection sw_kernel_reset_bridge.out_reset if_$mem_id.sw_kernel_reset reset
-	add_connection global_reset_bridge.out_reset if_$mem_id.global_reset
+	add_connection kernel_clk_bridge.clk if_$id.kernel_clk clock
+	add_connection kernel_clk_bridge.clk_reset if_$id.kernel_reset reset
+	add_connection sw_kernel_reset_bridge.out_reset if_$id.sw_kernel_reset reset
+	add_connection global_reset_bridge.out_reset if_$id.global_reset
 
-	add_connection acl_memory_bank_divider.bank$i\_r if_$mem_id.dma_r avalon
-	set_connection_parameter_value acl_memory_bank_divider.bank$i\_r/if_$mem_id.dma_r arbitrationPriority {1}
-	set_connection_parameter_value acl_memory_bank_divider.bank$i\_r/if_$mem_id.dma_r baseAddress {0x0000}
-	set_connection_parameter_value acl_memory_bank_divider.bank$i\_r/if_$mem_id.dma_r defaultConnection {0}
+	add_connection acl_memory_bank_divider.bank$i\_r if_$id.dma_r avalon
+	set_connection_parameter_value acl_memory_bank_divider.bank$i\_r/if_$id.dma_r arbitrationPriority {1}
+	set_connection_parameter_value acl_memory_bank_divider.bank$i\_r/if_$id.dma_r baseAddress {0x0000}
+	set_connection_parameter_value acl_memory_bank_divider.bank$i\_r/if_$id.dma_r defaultConnection {0}
 
-	add_connection acl_memory_bank_divider.bank$i\_w if_$mem_id.dma_w avalon
-	set_connection_parameter_value acl_memory_bank_divider.bank$i\_w/if_$mem_id.dma_w arbitrationPriority {1}
-	set_connection_parameter_value acl_memory_bank_divider.bank$i\_w/if_$mem_id.dma_w baseAddress {0x0000}
-	set_connection_parameter_value acl_memory_bank_divider.bank$i\_w/if_$mem_id.dma_w defaultConnection {0}
+	add_connection acl_memory_bank_divider.bank$i\_w if_$id.dma_w avalon
+	set_connection_parameter_value acl_memory_bank_divider.bank$i\_w/if_$id.dma_w arbitrationPriority {1}
+	set_connection_parameter_value acl_memory_bank_divider.bank$i\_w/if_$id.dma_w baseAddress {0x0000}
+	set_connection_parameter_value acl_memory_bank_divider.bank$i\_w/if_$id.dma_w defaultConnection {0}
 
 	set board_file $board_path/board_specification.xml
+	send_message info $board_file
+
 	set board_fp [open $board_file]
 	set board_dom [dom::parse [read $board_fp]]
 
-	foreach dep [dom::selectNode $board_dom /board/global_mem\[@type="QDRII"\]\[@sys_id=\"$sys_id\"\]/*\[@primary=\"$mem_id\"\]/@id] {
+	foreach dep [dom::selectNode $board_dom /board/global_mem\[@type="QDRII"\]\[@sys_id=\"$sys_id\"\]/*\[@primary=\"$id\"\]/@id] {
 	    set dep_id [$dep stringValue]
 	    set shared_node [[dom::selectNode $board_dom /board/global_mem\[@type="QDRII"\]\[@sys_id=\"$sys_id\"\]/*\[@id=\"$dep_id\"\]/@shared] stringValue]
 	    set shared_interfaces [split [[dom::selectNode $board_dom /board/global_mem\[@type="QDRII"\]/interface\[@id=\"$dep_id\"\]/@shared] stringValue] ","]
 
 	    foreach interface $shared_interfaces {
-		add_connection if_$mem_id.$interface\_sharing_$dep_id if_$dep_id.$interface\_sharing_$dep_id conduit
-		set_connection_parameter_value if_$mem_id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id endPort {}
-		set_connection_parameter_value if_$mem_id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id endPortLSB {0}
-		set_connection_parameter_value if_$mem_id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id startPort {}
-		set_connection_parameter_value if_$mem_id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id startPortLSB {0}
-		set_connection_parameter_value if_$mem_id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id width {0}
+		add_connection if_$id.$interface\_sharing_$dep_id if_$dep_id.$interface\_sharing_$dep_id conduit
+		set_connection_parameter_value if_$id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id endPort {}
+		set_connection_parameter_value if_$id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id endPortLSB {0}
+		set_connection_parameter_value if_$id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id startPort {}
+		set_connection_parameter_value if_$id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id startPortLSB {0}
+		set_connection_parameter_value if_$id.$interface\_sharing_$dep_id/if_$dep_id.$interface\_sharing_$dep_id width {0}
 	    }
 
 	    if {"pll" in $shared_interfaces} {
-		add_connection if_$mem_id.afi_clk if_$dep_id.afi_clk clock
-		add_connection if_$mem_id.afi_reset if_$dep_id.afi_reset reset
-		add_connection if_$mem_id.afi_half_clk if_$dep_id.afi_half_clk clock
+		add_connection if_$id.afi_clk if_$dep_id.afi_clk clock
+		add_connection if_$id.afi_reset if_$dep_id.afi_reset reset
+		add_connection if_$id.afi_half_clk if_$dep_id.afi_half_clk clock
 	    }
 	    # TODO: This is not right, it should be checking for independent and secondary, but w/e (for now)
-	    add_connection if_$mem_id.memory_reset if_$dep_id.dma_reset reset
-	    add_connection if_$mem_id.afi_clk if_$dep_id.dma_clk clock
+	    add_connection if_$id.memory_reset if_$dep_id.dma_reset reset
+	    add_connection if_$id.afi_clk if_$dep_id.dma_clk clock
 	}
     }
 }
