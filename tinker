@@ -102,4 +102,6 @@ elif(args.generate):
 
     print Tinker.prettify(e)
     e = b.build_spec(s, version, specification=True)
+    # TODO: Change to destination path
+    b.edit_system(s,tinker_path + "/boards/%s/%s/system.qsys" %(version,board))
     print Tinker.prettify(e)

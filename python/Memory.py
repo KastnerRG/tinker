@@ -56,7 +56,7 @@ class Memory(IP):
         intbytes = int(burst) * width / 8
         r.set("interleaved_bytes", str(intbytes))
         if(n == "0"):
-            r.set("config_addr", "0x18")
+            r.set("config_addr", "0x018")
             r.set("default","1")
         else:
             r.set("config_addr", hex(int("0x100",16) + (int(n)-1) * int("0x18",16)))
@@ -68,6 +68,7 @@ class Memory(IP):
             r.append(e);
 
         if(specification):
+            r.set("base_address",hex(base))
             r.set("quantity",str(len(s[n]["Interfaces"])))
             r.set("width",str(width))
             r.set("sys_id",str(n))
@@ -81,3 +82,4 @@ class Memory(IP):
             r.set("role",role)
             
         return r
+

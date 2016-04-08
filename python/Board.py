@@ -74,33 +74,65 @@ class Board(ET.Element):
 
         # Host Interface
         host = ET.SubElement(r,"host")
-        ET.SubElement(host,"kernel_config",attrib={"start":"0x00000000","size":"0x0100000"})
+        ET.SubElement(host,"kernel_config",
+                      attrib={"start":"0x00000000","size":"0x0100000"})
         
         # ACL Plumbing
         intfs = ET.SubElement(r, "interfaces")
         # TODO: board, not acl_iface
-        kernel_cra = ET.SubElement(intfs,"interface", attrib={"name":"board",
-                                                          "port":"kernel_cra",
-                                                          "type":"master",
-                                                          "width":"64",
-                                                          "misc":"0"}) # Purpose of misc?
+        kernel_cra = ET.SubElement(intfs,"interface",
+                                   attrib={"name":"tinker",
+                                            "port":"kernel_cra",
+                                            "type":"master",
+                                            "width":"64",
+                                            "misc":"0"}) # Purpose of misc?
 
-        kernel_irq = ET.SubElement(intfs,"interface", attrib={"name":"board",
-                                                          "port":"kernel_irq",
-                                                          "type":"irq",
-                                                          "width":"q"})
-        snoop = ET.SubElement(intfs,"interface", attrib={"name":"board",
-                                                     "port":"acl_internal_snoop",
-                                                     "type":"streamsource",
-                                                     "enable":"SNOOPENABLE",
-                                                     "clock":"board.kernel_clk",
-                                                     "width":str(int(math.log(size_default)/math.log(2)))})
-        kclk_rst = ET.SubElement(intfs,"kernel_clk_reset", attrib={"clk":"board.kernel_clk",
-                                                               "clk2x":"board.kernel_clk2x",
-                                                               "reset":"board.kernel_reset"})
+        kernel_irq = ET.SubElement(intfs,"interface",
+                                   attrib={"name":"tinker",
+                                           "port":"kernel_irq",
+                                           "type":"irq",
+                                           "width":"q"})
+        snoop = ET.SubElement(intfs,"interface",
+                              attrib={"name":"tinker",
+                                      "port":"acl_internal_snoop",
+                                      "type":"streamsource",
+                                      "enable":"SNOOPENABLE",
+                                      "clock":"tinker.kernel_clk",
+                                      "width":str(int(math.log(size_default)/math.log(2)))})
+        kclk_rst = ET.SubElement(intfs,"kernel_clk_reset",
+                                 attrib={"clk":"tinker.kernel_clk",
+                                         "clk2x":"tinker.kernel_clk2x",
+                                         "reset":"tinker.kernel_reset"})
 
 
         return r
 
 
 
+    def edit_system(self, spec, sysxml):
+        sysroot = ET.parse(sysxml).getroot()
+        s = spec.get_info()
+        for sys in s["Systems"]:
+            t = s[sys]["Type"]
+            for i in s[sys]["Interfaces"]:
+                n = t.lower()+ "_" + i
+                r = s[sys][i]["Role"]
+                ET.SubElement(sysroot,"interface",
+                              attrib={"name":n,
+                                      "internal":"tinker."+n,
+                                      "type":"conduit",
+                                      "dir":"end"})
+                if(r == "primary"):
+                    ET.SubElement(sysroot,"interface",
+                                  attrib={"name":n,
+                                          "internal":"tinker."+n+"_mem_oct",
+                                          "type":"conduit",
+                                          "dir":"end"})
+                if(r == "primary" or r == "independent"):
+                    ET.SubElement(sysroot,"interface",
+                                  attrib={"name":n,
+                                          "internal":"tinker."+n+"_pll_ref",
+                                          "type":"conduit",
+                                          "dir":"end"})
+                
+        print Tinker.prettify(sysroot)
