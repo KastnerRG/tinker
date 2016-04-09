@@ -17,14 +17,6 @@
          type = "String";
       }
    }
-   element acl_iface
-   {
-      datum _sortIndex
-      {
-         value = "1";
-         type = "int";
-      }
-   }
    element global_reset
    {
       datum _sortIndex
@@ -39,6 +31,38 @@
       {
          value = "Stratix V";
          type = "String";
+      }
+   }
+   element system
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Stratix V";
+         type = "String";
+      }
+   }
+   element system
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Stratix V";
+         type = "String";
+      }
+   }
+   element system
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Stratix V";
+         type = "String";
+      }
+   }
+   element tinker
+   {
+      datum _sortIndex
+      {
+         value = "1";
+         type = "int";
       }
    }
 }
@@ -61,25 +85,7 @@
  <parameter name="timeStamp" value="0" />
  <parameter name="useTestBenchNamingPattern" value="false" />
  <instanceScript></instanceScript>
- <interface
-   name="config_clk"
-   internal="acl_iface.config_clk"
-   type="clock"
-   dir="end" />
- <interface name="ddr3a" internal="acl_iface.ddr3a" type="conduit" dir="end" />
- <interface
-   name="ddr3a_mem_oct"
-   internal="acl_iface.ddr3a_oct"
-   type="conduit"
-   dir="end" />
- <interface
-   name="ddr3a_pll_ref"
-   internal="acl_iface.ddr3a_pll_ref"
-   type="clock"
-   dir="end" />
- <interface name="ddr3b" internal="acl_iface.ddr3b" type="conduit" dir="end" />
- <interface name="ddr3b_mem_oct" internal="acl_iface.ddr3b_oct" />
- <interface name="ddr3b_pll_ref" internal="acl_iface.ddr3b_pll_ref" />
+ <interface name="config_clk" internal="tinker.config_clk" type="clock" dir="end" />
  <interface
    name="global_reset"
    internal="global_reset.in_reset"
@@ -87,118 +93,36 @@
    dir="end" />
  <interface
    name="kernel_pll_refclk"
-   internal="acl_iface.kernel_pll_refclk"
-   type="clock"
-   dir="end" />
- <interface name="kernelpll_refclk" internal="acl_iface.kernelpll_refclk" />
- <interface
-   name="locala_pll_ref"
-   internal="acl_iface.locala_pll_ref"
-   type="clock"
-   dir="end" />
- <interface
-   name="localb_pll_ref"
-   internal="acl_iface.localb_pll_ref"
-   type="clock"
-   dir="end" />
- <interface
-   name="localc_pll_ref"
-   internal="acl_iface.localc_pll_ref"
-   type="clock"
-   dir="end" />
- <interface
-   name="locald_pll_ref"
-   internal="acl_iface.locald_pll_ref"
+   internal="tinker.kernel_pll_refclk"
    type="clock"
    dir="end" />
  <interface
    name="pcie"
-   internal="acl_iface.pcie_hip_serial"
+   internal="tinker.pcie_hip_serial"
    type="conduit"
    dir="end" />
- <interface
-   name="pcie_npor"
-   internal="acl_iface.pcie_npor"
-   type="conduit"
-   dir="end" />
+ <interface name="pcie_npor" internal="tinker.pcie_npor" type="conduit" dir="end" />
  <interface
    name="pcie_npor_out"
-   internal="acl_iface.pcie_npor_out"
+   internal="tinker.pcie_npor_out"
    type="reset"
    dir="start" />
- <interface name="pcie_nreset_status" internal="acl_iface.pcie_nreset_status" />
+ <interface name="pcie_nreset_status" internal="tinker.pcie_nreset_status" />
  <interface
    name="pcie_refclk"
-   internal="acl_iface.pcie_refclk"
-   type="clock"
-   dir="end" />
- <interface name="qdriia" internal="acl_iface.qdriia" type="conduit" dir="end" />
- <interface name="qdriib" internal="acl_iface.qdriib" type="conduit" dir="end" />
- <interface
-   name="qdriib_mem_oct"
-   internal="acl_iface.qdriib_oct"
-   type="conduit"
-   dir="end" />
- <interface
-   name="qdriib_pll_ref"
-   internal="acl_iface.qdriib_pll_ref"
-   type="clock"
-   dir="end" />
- <interface name="qdriic" internal="acl_iface.qdriic" type="conduit" dir="end" />
- <interface name="qdriid" internal="acl_iface.qdriid" type="conduit" dir="end" />
- <interface
-   name="qdriid_pll_ref"
-   internal="acl_iface.qdriid_pll_ref"
+   internal="tinker.pcie_refclk"
    type="clock"
    dir="end" />
  <interface
    name="reconfig_from_xcvr"
-   internal="acl_iface.reconfig_from_xcvr"
+   internal="tinker.pcie_reconfig_from_xcvr"
    type="conduit"
    dir="end" />
  <interface
    name="reconfig_to_xcvr"
-   internal="acl_iface.reconfig_to_xcvr"
+   internal="tinker.pcie_reconfig_to_xcvr"
    type="conduit"
    dir="end" />
- <module name="acl_iface" kind="acl_iface_system" version="1.0" enabled="1">
-  <parameter name="AUTO_CONFIG_CLK_CLOCK_DOMAIN" value="1" />
-  <parameter name="AUTO_CONFIG_CLK_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_CONFIG_CLK_RESET_DOMAIN" value="1" />
-  <parameter name="AUTO_DDR3A_PLL_REF_CLOCK_DOMAIN" value="2" />
-  <parameter name="AUTO_DDR3A_PLL_REF_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_DDR3A_PLL_REF_RESET_DOMAIN" value="2" />
-  <parameter name="AUTO_DEVICE" value="5SGXEA7N2F45C2" />
-  <parameter name="AUTO_DEVICE_FAMILY" value="Stratix V" />
-  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="2_H2" />
-  <parameter name="AUTO_GENERATION_ID" value="0" />
-  <parameter name="AUTO_KERNEL_IRQ_INTERRUPTS_USED" value="0" />
-  <parameter name="AUTO_KERNEL_PLL_REFCLK_CLOCK_DOMAIN" value="4" />
-  <parameter name="AUTO_KERNEL_PLL_REFCLK_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_KERNEL_PLL_REFCLK_RESET_DOMAIN" value="4" />
-  <parameter name="AUTO_LOCALA_PLL_REF_CLOCK_DOMAIN" value="5" />
-  <parameter name="AUTO_LOCALA_PLL_REF_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_LOCALA_PLL_REF_RESET_DOMAIN" value="5" />
-  <parameter name="AUTO_LOCALB_PLL_REF_CLOCK_DOMAIN" value="6" />
-  <parameter name="AUTO_LOCALB_PLL_REF_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_LOCALB_PLL_REF_RESET_DOMAIN" value="6" />
-  <parameter name="AUTO_LOCALC_PLL_REF_CLOCK_DOMAIN" value="7" />
-  <parameter name="AUTO_LOCALC_PLL_REF_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_LOCALC_PLL_REF_RESET_DOMAIN" value="7" />
-  <parameter name="AUTO_LOCALD_PLL_REF_CLOCK_DOMAIN" value="8" />
-  <parameter name="AUTO_LOCALD_PLL_REF_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_LOCALD_PLL_REF_RESET_DOMAIN" value="8" />
-  <parameter name="AUTO_PCIE_REFCLK_CLOCK_DOMAIN" value="10" />
-  <parameter name="AUTO_PCIE_REFCLK_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_PCIE_REFCLK_RESET_DOMAIN" value="10" />
-  <parameter name="AUTO_QDRIIB_PLL_REF_CLOCK_DOMAIN" value="11" />
-  <parameter name="AUTO_QDRIIB_PLL_REF_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_QDRIIB_PLL_REF_RESET_DOMAIN" value="11" />
-  <parameter name="AUTO_QDRIID_PLL_REF_CLOCK_DOMAIN" value="12" />
-  <parameter name="AUTO_QDRIID_PLL_REF_CLOCK_RATE" value="0" />
-  <parameter name="AUTO_QDRIID_PLL_REF_RESET_DOMAIN" value="12" />
-  <parameter name="AUTO_UNIQUE_ID">$${FILENAME}_acl_iface</parameter>
- </module>
  <module
    name="global_reset"
    kind="altera_reset_bridge"
@@ -210,11 +134,17 @@
   <parameter name="SYNCHRONOUS_EDGES" value="none" />
   <parameter name="USE_RESET_REQUEST" value="0" />
  </module>
+ <module name="tinker" kind="tinker_architecture" version="14.1" enabled="1">
+  <parameter name="AUTO_DEVICE" value="5SGXEA7N2F45C2" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Stratix V" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="2_H2" />
+  <parameter name="BOARD_PATH" value=".." />
+ </module>
  <connection
    kind="reset"
    version="14.1"
    start="global_reset.out_reset"
-   end="acl_iface.global_reset" />
+   end="tinker.global_reset" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="FIFO" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="0" />
 </system>

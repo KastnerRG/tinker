@@ -53,7 +53,7 @@
    {
       datum _sortIndex
       {
-         value = "9";
+         value = "8";
          type = "int";
       }
    }
@@ -81,39 +81,7 @@
          type = "int";
       }
    }
-   element mem_org_mode_ddr
-   {
-      datum _sortIndex
-      {
-         value = "8";
-         type = "int";
-      }
-   }
-   element mem_org_mode_ddr.s
-   {
-      datum baseAddress
-      {
-         value = "24";
-         type = "String";
-      }
-   }
-   element mem_org_mode_local
-   {
-      datum _sortIndex
-      {
-         value = "15";
-         type = "int";
-      }
-   }
-   element mem_org_mode_local.s
-   {
-      datum baseAddress
-      {
-         value = "280";
-         type = "String";
-      }
-   }
-   element mem_org_mode_qdr
+   element mem_org_mode_0x100
    {
       datum _sortIndex
       {
@@ -121,7 +89,7 @@
          type = "int";
       }
    }
-   element mem_org_mode_qdr.s
+   element mem_org_mode_0x100.s
    {
       datum baseAddress
       {
@@ -129,15 +97,87 @@
          type = "String";
       }
    }
-   element reset_bridge_0
+   element mem_org_mode_0x104
    {
       datum _sortIndex
       {
-         value = "12";
+         value = "15";
          type = "int";
       }
    }
-   element reset_bridge_1
+   element mem_org_mode_0x104.s
+   {
+      datum baseAddress
+      {
+         value = "260";
+         type = "String";
+      }
+   }
+   element mem_org_mode_0x108
+   {
+      datum _sortIndex
+      {
+         value = "16";
+         type = "int";
+      }
+   }
+   element mem_org_mode_0x108.s
+   {
+      datum baseAddress
+      {
+         value = "280";
+         type = "String";
+      }
+   }
+   element mem_org_mode_0x10C
+   {
+      datum _sortIndex
+      {
+         value = "17";
+         type = "int";
+      }
+   }
+   element mem_org_mode_0x10C.s
+   {
+      datum baseAddress
+      {
+         value = "284";
+         type = "String";
+      }
+   }
+   element mem_org_mode_0x110
+   {
+      datum _sortIndex
+      {
+         value = "18";
+         type = "int";
+      }
+   }
+   element mem_org_mode_0x110.s
+   {
+      datum baseAddress
+      {
+         value = "272";
+         type = "String";
+      }
+   }
+   element mem_org_mode_0x114
+   {
+      datum _sortIndex
+      {
+         value = "19";
+         type = "int";
+      }
+   }
+   element mem_org_mode_0x114.s
+   {
+      datum baseAddress
+      {
+         value = "276";
+         type = "String";
+      }
+   }
+   element mem_org_mode_0x18
    {
       datum _sortIndex
       {
@@ -145,11 +185,35 @@
          type = "int";
       }
    }
-   element reset_controller_sw
+   element mem_org_mode_0x18.s
+   {
+      datum baseAddress
+      {
+         value = "24";
+         type = "String";
+      }
+   }
+   element reset_bridge_0
    {
       datum _sortIndex
       {
          value = "11";
+         type = "int";
+      }
+   }
+   element reset_bridge_1
+   {
+      datum _sortIndex
+      {
+         value = "12";
+         type = "int";
+      }
+   }
+   element reset_controller_sw
+   {
+      datum _sortIndex
+      {
+         value = "10";
          type = "int";
       }
    }
@@ -173,7 +237,7 @@
    {
       datum _sortIndex
       {
-         value = "10";
+         value = "9";
          type = "int";
       }
    }
@@ -252,33 +316,73 @@
  <interface name="mem_export_export" internal=".export" />
  <interface name="mem_export_irq_export" internal=".irq_export" />
  <interface
-   name="mem_org_mode_ddr_mem_organization_host"
-   internal="mem_org_mode_ddr.mem_organization_host"
+   name="mem_org_mode_0x018_host"
+   internal="mem_org_mode_0x18.mem_organization_host"
    type="conduit"
    dir="end" />
  <interface
-   name="mem_org_mode_ddr_mem_organization_kernel"
-   internal="mem_org_mode_ddr.mem_organization_kernel"
+   name="mem_org_mode_0x018_kernel"
+   internal="mem_org_mode_0x18.mem_organization_kernel"
    type="conduit"
    dir="end" />
  <interface
-   name="mem_org_mode_local_mem_organization_host"
-   internal="mem_org_mode_local.mem_organization_host"
+   name="mem_org_mode_0x100_host"
+   internal="mem_org_mode_0x100.mem_organization_host"
    type="conduit"
    dir="end" />
  <interface
-   name="mem_org_mode_local_mem_organization_kernel"
-   internal="mem_org_mode_local.mem_organization_kernel"
+   name="mem_org_mode_0x100_kernel"
+   internal="mem_org_mode_0x100.mem_organization_kernel"
    type="conduit"
    dir="end" />
  <interface
-   name="mem_org_mode_qdr_mem_organization_host"
-   internal="mem_org_mode_qdr.mem_organization_host"
+   name="mem_org_mode_0x104_host"
+   internal="mem_org_mode_0x104.mem_organization_host"
    type="conduit"
    dir="end" />
  <interface
-   name="mem_org_mode_qdr_mem_organization_kernel"
-   internal="mem_org_mode_qdr.mem_organization_kernel"
+   name="mem_org_mode_0x104_kernel"
+   internal="mem_org_mode_0x104.mem_organization_kernel"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="mem_org_mode_0x108_host"
+   internal="mem_org_mode_0x108.mem_organization_host"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="mem_org_mode_0x108_kernel"
+   internal="mem_org_mode_0x108.mem_organization_kernel"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="mem_org_mode_0x10c_host"
+   internal="mem_org_mode_0x10C.mem_organization_host"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="mem_org_mode_0x10c_kernel"
+   internal="mem_org_mode_0x10C.mem_organization_kernel"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="mem_org_mode_0x110_host"
+   internal="mem_org_mode_0x110.mem_organization_host"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="mem_org_mode_0x110_kernel"
+   internal="mem_org_mode_0x110.mem_organization_kernel"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="mem_org_mode_0x114_host"
+   internal="mem_org_mode_0x114.mem_organization_host"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="mem_org_mode_0x114_kernel"
+   internal="mem_org_mode_0x114.mem_organization_kernel"
    type="conduit"
    dir="end" />
  <interface name="reset" internal="clk_reset.clk_in_reset" type="reset" dir="end" />
@@ -372,7 +476,7 @@
   <parameter name="USE_AUTO_ADDRESS_WIDTH" value="0" />
  </module>
  <module
-   name="mem_org_mode_ddr"
+   name="mem_org_mode_0x100"
    kind="mem_org_mode"
    version="10.0"
    enabled="1">
@@ -380,7 +484,7 @@
   <parameter name="WIDTH" value="32" />
  </module>
  <module
-   name="mem_org_mode_local"
+   name="mem_org_mode_0x104"
    kind="mem_org_mode"
    version="10.0"
    enabled="1">
@@ -388,7 +492,39 @@
   <parameter name="WIDTH" value="32" />
  </module>
  <module
-   name="mem_org_mode_qdr"
+   name="mem_org_mode_0x108"
+   kind="mem_org_mode"
+   version="10.0"
+   enabled="1">
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="WIDTH" value="32" />
+ </module>
+ <module
+   name="mem_org_mode_0x10C"
+   kind="mem_org_mode"
+   version="10.0"
+   enabled="1">
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="WIDTH" value="32" />
+ </module>
+ <module
+   name="mem_org_mode_0x110"
+   kind="mem_org_mode"
+   version="10.0"
+   enabled="1">
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="WIDTH" value="32" />
+ </module>
+ <module
+   name="mem_org_mode_0x114"
+   kind="mem_org_mode"
+   version="10.0"
+   enabled="1">
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="WIDTH" value="32" />
+ </module>
+ <module
+   name="mem_org_mode_0x18"
    kind="mem_org_mode"
    version="10.0"
    enabled="1">
@@ -524,7 +660,7 @@
    kind="avalon"
    version="14.1"
    start="kernel_cntrl.m0"
-   end="mem_org_mode_ddr.s">
+   end="mem_org_mode_0x18.s">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0018" />
   <parameter name="defaultConnection" value="false" />
@@ -542,7 +678,7 @@
    kind="avalon"
    version="14.1"
    start="kernel_cntrl.m0"
-   end="mem_org_mode_qdr.s">
+   end="mem_org_mode_0x100.s">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0100" />
   <parameter name="defaultConnection" value="false" />
@@ -551,9 +687,45 @@
    kind="avalon"
    version="14.1"
    start="kernel_cntrl.m0"
-   end="mem_org_mode_local.s">
+   end="mem_org_mode_0x104.s">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0104" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="14.1"
+   start="kernel_cntrl.m0"
+   end="mem_org_mode_0x108.s">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0118" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="14.1"
+   start="kernel_cntrl.m0"
+   end="mem_org_mode_0x10C.s">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x011c" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="14.1"
+   start="kernel_cntrl.m0"
+   end="mem_org_mode_0x114.s">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0114" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="14.1"
+   start="kernel_cntrl.m0"
+   end="mem_org_mode_0x110.s">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0110" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -584,7 +756,7 @@
    kind="clock"
    version="14.1"
    start="clk_reset.clk"
-   end="mem_org_mode_ddr.clk" />
+   end="mem_org_mode_0x18.clk" />
  <connection
    kind="clock"
    version="14.1"
@@ -604,12 +776,32 @@
    kind="clock"
    version="14.1"
    start="clk_reset.clk"
-   end="mem_org_mode_qdr.clk" />
+   end="mem_org_mode_0x100.clk" />
  <connection
    kind="clock"
    version="14.1"
    start="clk_reset.clk"
-   end="mem_org_mode_local.clk" />
+   end="mem_org_mode_0x104.clk" />
+ <connection
+   kind="clock"
+   version="14.1"
+   start="clk_reset.clk"
+   end="mem_org_mode_0x108.clk" />
+ <connection
+   kind="clock"
+   version="14.1"
+   start="clk_reset.clk"
+   end="mem_org_mode_0x10C.clk" />
+ <connection
+   kind="clock"
+   version="14.1"
+   start="clk_reset.clk"
+   end="mem_org_mode_0x110.clk" />
+ <connection
+   kind="clock"
+   version="14.1"
+   start="clk_reset.clk"
+   end="mem_org_mode_0x114.clk" />
  <connection
    kind="clock"
    version="14.1"
@@ -649,7 +841,7 @@
    kind="reset"
    version="14.1"
    start="clk_reset.clk_reset"
-   end="mem_org_mode_ddr.clk_reset" />
+   end="mem_org_mode_0x18.clk_reset" />
  <connection
    kind="reset"
    version="14.1"
@@ -659,12 +851,32 @@
    kind="reset"
    version="14.1"
    start="clk_reset.clk_reset"
-   end="mem_org_mode_qdr.clk_reset" />
+   end="mem_org_mode_0x100.clk_reset" />
  <connection
    kind="reset"
    version="14.1"
    start="clk_reset.clk_reset"
-   end="mem_org_mode_local.clk_reset" />
+   end="mem_org_mode_0x104.clk_reset" />
+ <connection
+   kind="reset"
+   version="14.1"
+   start="clk_reset.clk_reset"
+   end="mem_org_mode_0x108.clk_reset" />
+ <connection
+   kind="reset"
+   version="14.1"
+   start="clk_reset.clk_reset"
+   end="mem_org_mode_0x10C.clk_reset" />
+ <connection
+   kind="reset"
+   version="14.1"
+   start="clk_reset.clk_reset"
+   end="mem_org_mode_0x110.clk_reset" />
+ <connection
+   kind="reset"
+   version="14.1"
+   start="clk_reset.clk_reset"
+   end="mem_org_mode_0x114.clk_reset" />
  <connection
    kind="reset"
    version="14.1"
