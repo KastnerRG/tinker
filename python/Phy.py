@@ -104,7 +104,7 @@ class Phy(IP):
         if(size > self.info["size"]):
             print "ERROR! Size is too large for memory"
             exit(1)
-        r = ET.Element("interface", attrib={"name": self.info["type"], "type":"slave", "address":str(hex(base)), "size":str(hex(size))})
+        r = ET.Element("interface", attrib={"name": "tinker", "type":"slave", "address":str(hex(base)), "size":str(hex(size))})
 
         # Check that the width is valid:
         dqp2 = self.info["pow2_dq_pins"]
@@ -120,7 +120,7 @@ class Phy(IP):
                 print "ERROR: No possible fabric ratio for desired fabric width in System %s" % id
                 exit(1)
         r.set("width", str(width))
-        r.set("burst", str(burst))
+        r.set("maxburst", str(burst))
         if(specification):
             primary = s[n]["Primary"]
             r.set("id", str(id))
@@ -128,16 +128,20 @@ class Phy(IP):
             r.set("role", s[n][id]["Role"])
             if(s[n][id]["Role"] == "secondary"):
                 r.set("shared","pll,dll,oct")
-            if(s[n][id]["Role"] == "secondary"):
+                r.set("primary",primary)
+            elif(s[n][id]["Role"] == "independent"):
                 r.set("shared","oct")
                 r.set("primary",primary)
             else:
                 r.set("shared","")
 
-            r.set("max_frequency_mhz",str(self.info["fmax_mhz"]))
+            r.set("mem_frequency_mhz",str(self.info["fmax_mhz"]))
             r.set("ref_frequency_mhz",str(self.info["fref_mhz"]))
             
         return r
+
+    def gen_macros(self, spec, n):
+        return "`define " + self.info["macro"] + "\n"
         
 def initialize(t, e, enum):
     if(t == "DDR3"):

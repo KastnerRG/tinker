@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse as ap
 import os
+import shutil
 import xml.etree.ElementTree as et
 from xml.dom import minidom
 
@@ -96,12 +97,40 @@ elif(args.generate):
     path = args.generate[0]
     version = args.generate[1]
     board = args.generate[2]
-    b = Board.Board(tinker_path + "/boards/%s/%s/%s.xml" % (version,board,board), version, board)
+    # TODO: Check if board is available...
+    skel_path = tinker_path + "/boards/%s/%s/" % (version,board)
+    b = Board.Board(skel_path + "%s.xml" % board, version, board)
     s = Specification.Specification(path)
-    e = b.build_spec(s, version)
+    outdir_path = "./" + board + "_" + s.get_info()["Name"] + "/"
+    try:
+        shutil.rmtree(outdir_path)
+    except:
+        pass
 
-    print Tinker.prettify(e)
-    e = b.build_spec(s, version, specification=True)
-    # TODO: Change to destination path
-    b.edit_system(s,tinker_path + "/boards/%s/%s/system.qsys" %(version,board))
-    print Tinker.prettify(e)
+    shutil.copytree(skel_path, outdir_path)
+
+    # Build Board Specification and Board Spec files
+    specification = b.build_spec(s, version, specification=True)
+    specification_fp = open(outdir_path + "board_specification.xml","w")
+    specification_fp.write(Tinker.prettify(specification))
+    specification_fp.close()
+    
+    spec = b.build_spec(s, version, specification=False) #todo
+    spec_et = et.ElementTree(spec)
+    spec_fp = open(outdir_path + "board_spec.xml","w")
+    spec_fp.write(Tinker.prettify(spec))
+    spec_fp.close()
+
+    # Build System.qsys
+    sys = b.gen_system(s,outdir_path + "system.qsys")
+    sys_et = et.ElementTree(sys)
+    sys_et.write(outdir_path + "system.qsys", encoding="UTF-8", xml_declaration=True)
+
+    # Move TCL Files
+    shutil.copytree(tinker_path + "/tcl/", outdir_path + "/tcl/")
+
+    # Generate Macro file
+    macros = b.gen_macros(s)
+    macro_fp = open(outdir_path + "tinker.vh", "w")
+    macro_fp.write(macros)
+    macro_fp.close()

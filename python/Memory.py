@@ -39,7 +39,6 @@ class Memory(IP):
         else:
             d["quantity"] = "\"infinite\""
         d["ids"] = []
-        bandwidth = 0
         for e in r.findall("./[@type='%s']/*" % t):
             mem = Phy.initialize(t, e, d["enumeration"])
             di = mem.get_info()
@@ -50,7 +49,7 @@ class Memory(IP):
 
     def build_spec(self,spec, n, base, specification=False):
         s = spec.get_info()
-        r = ET.Element("global_mem", attrib={"name": self.info["type"] + str(n)})
+        r = ET.Element("global_mem", attrib={"name": self.info["type"] + "_" + str(n)})
         burst = s.get("Burst","16")
         width = int(s[n]["Width"])
         intbytes = int(burst) * width / 8
@@ -60,13 +59,17 @@ class Memory(IP):
             r.set("default","1")
         else:
             r.set("config_addr", hex(int("0x100",16) + (int(n)-1) * int("0x18",16)))
-            
+
+        size = 0
+        bandwidth = 0
         for id in s[n]["Interfaces"]:
+            bandwidth += self.info[id]["bandwidth_bs"]
             i = self.ifs[id]
             e = i.build_spec(spec,n,id,base,burst,width,specification=specification)
-            base += int(s[n][id]["Size"],16)
+            size += int(s[n][id]["Size"],16)
             r.append(e);
 
+        r.set("max_bandwidth", str(int(bandwidth)/1000000))
         if(specification):
             r.set("base_address",hex(base))
             r.set("quantity",str(len(s[n]["Interfaces"])))
@@ -74,12 +77,19 @@ class Memory(IP):
             r.set("sys_id",str(n))
             r.set("type",s[n]["Type"])
             r.set("maxburst",str(burst))
-            r.set("addr_width",str(int(math.log(base,2))))
+            r.set("addr_width",str(int(math.log(size,2))))
             if(n == "0"):
                 role = "primary"
             else:
                 role = "secondary"
             r.set("role",role)
-            
         return r
+
+    def gen_macros(self, spec, n):
+        s = spec.get_info()
+        macros =""
+        for intf in s[n]["Interfaces"]:
+            i = self.ifs[intf]
+            macros += i.gen_macros(spec, n)
+        return macros
 

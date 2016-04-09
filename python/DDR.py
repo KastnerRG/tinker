@@ -72,7 +72,7 @@ class DDR(Phy):
 
     def build_spec(self, spec, n , id, base, burst, width, specification=False):
         r = super(DDR,self).build_spec(spec,n,id,base, burst,width, specification=specification)
-        r.set("port","kernel_%s_ddr3%s_rw" % (n,id))
+        r.set("port","kernel_%s_if_%s_rw" % (n,id))
         r.set("latency","240") # Standard, recommended by Altera
         return r
 

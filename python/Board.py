@@ -38,23 +38,11 @@ class Board(ET.Element):
                         
         return d
 
-    def build_spec(self, spec, version, specification=False, xmlfn = ""):
+    def build_spec(self, spec, version, specification=False):
         s = spec.get_info()
-        r = ET.Element("board", attrib={"version": version, "name":s["Name"]})
+        r = ET.Element("board", attrib={"version": version, "name":self.info["name"] + "_" + s["Name"]})
         if(specification):
-            r.set("file", xmlfn)
-
-        base = 0
-        size_default = 0
-        for sys in s["Systems"]:
-            t = s[sys]["Type"]
-            m = self.types[t]
-            e = m.build_spec(spec,sys,base,specification=specification)
-            r.append(e)
-            for i in s[sys]["Interfaces"]:
-                base += int(s[sys][i]["Size"],16)
-                if(sys == "0"):
-                    size_default += int(s[sys][i]["Size"],16)
+            r.set("file", self.info["name"]+".xml")
 
         # Summary of Resources
         resources = Counter({"alms":0,
@@ -72,11 +60,20 @@ class Board(ET.Element):
         for rt,num in resources.iteritems():
             ET.SubElement(re, rt, attrib={"num":str(num)})
 
-        # Host Interface
-        host = ET.SubElement(r,"host")
-        ET.SubElement(host,"kernel_config",
-                      attrib={"start":"0x00000000","size":"0x0100000"})
-        
+        base = 0
+        size_default = 0
+        for sys in s["Systems"]:
+            t = s[sys]["Type"]
+            m = self.types[t]
+            e = m.build_spec(spec,sys,base,specification=specification)
+            r.append(e)
+            for i in s[sys]["Interfaces"]:
+                base += int(s[sys][i]["Size"],16)
+                if(sys == "0"):
+                    size_default += int(s[sys][i]["Size"],16)
+
+
+
         # ACL Plumbing
         intfs = ET.SubElement(r, "interfaces")
         # TODO: board, not acl_iface
@@ -103,13 +100,26 @@ class Board(ET.Element):
                                  attrib={"clk":"tinker.kernel_clk",
                                          "clk2x":"tinker.kernel_clk2x",
                                          "reset":"tinker.kernel_reset"})
+        # Host Interface
+        host = ET.SubElement(r,"host")
+        ET.SubElement(host,"kernel_config",
+                      attrib={"start":"0x00000000","size":"0x0100000"})
+        
+
 
 
         return r
 
+    def gen_macros(self, spec):
+        s = spec.get_info()
+        macros =""
+        for sys in s["Systems"]:
+            t = s[sys]["Type"]
+            mem = self.types[t]
+            macros += mem.gen_macros(spec, sys)
+        return macros
 
-
-    def edit_system(self, spec, sysxml):
+    def gen_system(self, spec, sysxml):
         sysroot = ET.parse(sysxml).getroot()
         s = spec.get_info()
         for sys in s["Systems"]:
@@ -134,5 +144,4 @@ class Board(ET.Element):
                                           "internal":"tinker."+n+"_pll_ref",
                                           "type":"conduit",
                                           "dir":"end"})
-                
-        print Tinker.prettify(sysroot)
+        return sysroot
