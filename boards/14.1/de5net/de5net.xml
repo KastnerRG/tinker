@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <board version="14.1" name="de5net" model="5sgxma7h2fe35c2_dm.xml">
   <memory type="DDR3" id="ddr3" quantity="2" division="discrete" alms="0" ffs="0" dsps="0" rams="0">
-    <phy id="a" macro="ENABLE_DDR3A" roles="primary, secondary, independent" grouping="a,b" ports="rw" bank_pins="3" column_pins="10" row_pins="15" dq_pins="64" rate="double" ratios="Quarter, Half, Full" fmax_mhz="800" fref_mhz="50" oct_pin="ddr3a_mem_oct_rzqin" alms="0" ffs="0" dsps="0" rams="0">
+    <phy id="a" macro="ENABLE_DDR3_A" roles="primary, secondary, independent" grouping="a,b" ports="rw" bank_pins="3" column_pins="10" row_pins="15" dq_pins="64" rate="double" ratios="Quarter, Half, Full" fmax_mhz="800" fref_mhz="50" oct_pin="ddr3a_mem_oct_rzqin" alms="0" ffs="0" dsps="0" rams="0">
       <parameter name="TIMING_BOARD_MAX_CK_DELAY" value="1.344965382"/>
       <parameter name="TIMING_BOARD_MAX_DQS_DELAY" value="0.6220263175"/>
       <parameter name="TIMING_BOARD_SKEW_WITHIN_DQS" value="0.006914298045"/>
@@ -10,7 +10,7 @@
       <parameter name="TIMING_BOARD_AC_SKEW" value="0.01654451376"/>
       <parameter name="TIMING_BOARD_AC_TO_CK_SKEW" value="-0.001268865261"/>
     </phy>
-    <phy id="b" macro="ENABLE_DDR3B" roles="primary, secondary, independent" grouping="a,b" ports="rw" bank_pins="3" column_pins="10" row_pins="15" dq_pins="64" rate="double" ratios="Quarter, Half, Full" fmax_mhz="800" fref_mhz="50" oct_pin="ddr3b_mem_oct_rzqin" alms="0" ffs="0" dsps="0" rams="0">
+    <phy id="b" macro="ENABLE_DDR3_B" roles="primary, secondary, independent" grouping="a,b" ports="rw" bank_pins="3" column_pins="10" row_pins="15" dq_pins="64" rate="double" ratios="Quarter, Half, Full" fmax_mhz="800" fref_mhz="50" oct_pin="ddr3b_mem_oct_rzqin" alms="0" ffs="0" dsps="0" rams="0">
       <parameter name="TIMING_BOARD_MAX_CK_DELAY" value="1.3667614"/>
       <parameter name="TIMING_BOARD_MAX_DQS_DELAY" value="0.63599095"/>
       <parameter name="TIMING_BOARD_SKEW_WITHIN_DQS" value="0.004431906023"/>
@@ -21,7 +21,7 @@
     </phy>
   </memory >
   <memory type="QDRII" id="qdrii" quantity="4" division="discrete" alms="0" ffs="0" dsps="0" rams="0">
-    <phy id="a" macro="ENABLE_QDRIIA" roles="primary, secondary, independent" grouping="a,b,c" ports="r,w" address_pins="20" dq_pins="18" burst="4" rate="double" ratios="Half, Full" fmax_mhz="450" fref_mhz="50" oct_pin="qdriib_mem_oct_rzqin" alms="0" ffs="0" dsps="0" rams="0">
+    <phy id="a" macro="ENABLE_QDRII_A" roles="primary, secondary, independent" grouping="a,b,c" ports="r,w" address_pins="20" dq_pins="18" burst="4" rate="double" ratios="Half, Full" fmax_mhz="450" fref_mhz="50" oct_pin="qdriib_mem_oct_rzqin" alms="0" ffs="0" dsps="0" rams="0">
       <parameter name="TIMING_BOARD_SKEW_WITHIN_K" value="23" />
       <parameter name="TIMING_BOARD_SKEW_WITHIN_CQ" value="16" />
       <parameter name="TIMING_BOARD_SKEW_BETWEEN_DQS" value="16" />
@@ -30,7 +30,7 @@
       <parameter name="TIMING_BOARD_DATA_TO_K_SKEW" value="10" />
       <parameter name="TIMING_BOARD_DATA_TO_CQ_SKEW" value="8" />
     </phy>
-    <phy id="b" macro="ENABLE_QDRIIB" roles="primary, secondary, independent" grouping="a,b,c" ports="r,w" address_pins="20" dq_pins="18" burst="4" rate="double" ratios="Half, Full" fmax_mhz="450" fref_mhz="50" oct_pin="qdriib_mem_oct_rzqin" alms="0" ffs="0" dsps="0" rams="0" >
+    <phy id="b" macro="ENABLE_QDRII_B" roles="primary, secondary, independent" grouping="a,b,c" ports="r,w" address_pins="20" dq_pins="18" burst="4" rate="double" ratios="Half, Full" fmax_mhz="450" fref_mhz="50" oct_pin="qdriib_mem_oct_rzqin" alms="0" ffs="0" dsps="0" rams="0" >
       <parameter name="TIMING_BOARD_SKEW_WITHIN_K" value="16" />
       <parameter name="TIMING_BOARD_SKEW_WITHIN_CQ" value="14" />
       <parameter name="TIMING_BOARD_SKEW_BETWEEN_DQS" value="14" />
@@ -39,7 +39,7 @@
       <parameter name="TIMING_BOARD_DATA_TO_K_SKEW" value="8" />
       <parameter name="TIMING_BOARD_DATA_TO_CQ_SKEW" value="6" />
     </phy>
-    <phy id="c" macro="ENABLE_QDRIIC" roles="primary, secondary, independent" grouping="a,b,c" ports="r,w" address_pins="20" dq_pins="18" burst="4" rate="double" ratios="Half, Full" fmax_mhz="450" fref_mhz="50" oct_pin="qdriib_mem_oct_rzqin" alms="0" ffs="0" dsps="0" rams="0">
+    <phy id="c" macro="ENABLE_QDRII_C" roles="primary, secondary, independent" grouping="a,b,c" ports="r,w" address_pins="20" dq_pins="18" burst="4" rate="double" ratios="Half, Full" fmax_mhz="450" fref_mhz="50" oct_pin="qdriib_mem_oct_rzqin" alms="0" ffs="0" dsps="0" rams="0">
       <parameter name="TIMING_BOARD_SKEW_WITHIN_K" value="23" />
       <parameter name="TIMING_BOARD_SKEW_WITHIN_CQ" value="16" />
       <parameter name="TIMING_BOARD_SKEW_BETWEEN_DQS" value="16" />
@@ -48,7 +48,7 @@
       <parameter name="TIMING_BOARD_DATA_TO_K_SKEW" value="10" />
       <parameter name="TIMING_BOARD_DATA_TO_CQ_SKEW" value="8" />
     </phy>
-    <phy id="d" macro="ENABLE_QDRIID" roles="primary" grouping="d" ports="r,w" address_pins="20" dq_pins="18" burst="4" rate="double" ratios="Half, Full" fmax_mhz="450" fref_mhz="50" oct_pin="qdriib_mem_oct_rzqin" alms="0" ffs="0" dsps="0" rams="0">
+    <phy id="d" macro="ENABLE_QDRII_D" roles="primary" grouping="d" ports="r,w" address_pins="20" dq_pins="18" burst="4" rate="double" ratios="Half, Full" fmax_mhz="450" fref_mhz="50" oct_pin="qdriib_mem_oct_rzqin" alms="0" ffs="0" dsps="0" rams="0">
       <parameter name="TIMING_BOARD_SKEW_WITHIN_K" value="16" />
       <parameter name="TIMING_BOARD_SKEW_WITHIN_CQ" value="14" />
       <parameter name="TIMING_BOARD_SKEW_BETWEEN_DQS" value="14" />

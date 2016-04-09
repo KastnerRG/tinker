@@ -65,7 +65,7 @@ class Memory(IP):
         for id in s[n]["Interfaces"]:
             bandwidth += self.info[id]["bandwidth_bs"]
             i = self.ifs[id]
-            e = i.build_spec(spec,n,id,base,burst,width,specification=specification)
+            e = i.build_spec(spec,n,id,base+size,burst,width,specification=specification)
             size += int(s[n][id]["Size"],16)
             r.append(e);
 
@@ -78,11 +78,7 @@ class Memory(IP):
             r.set("type",s[n]["Type"])
             r.set("maxburst",str(burst))
             r.set("addr_width",str(int(math.log(size,2))))
-            if(n == "0"):
-                role = "primary"
-            else:
-                role = "secondary"
-            r.set("role",role)
+            r.set("role",s[n]["Role"])
         return r
 
     def gen_macros(self, spec, n):
