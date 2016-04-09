@@ -242,7 +242,7 @@ proc compose { } {
     }
 
     foreach id $memory_ids {
-	add_instance if_$id ddr3_interface 1.0
+	add_instance if_$id ddr3_interface 14.1
 	set_instance_parameter_value if_$id {BOARD_PATH} $board_path
 	set_instance_parameter_value if_$id {MEMORY_IDENTIFIER} $id
 	set_instance_parameter_value if_$id {SYSTEM_IDENTIFIER} $sys_id
