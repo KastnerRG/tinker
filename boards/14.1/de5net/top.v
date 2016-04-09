@@ -172,13 +172,9 @@ module top
     assign ddr3_a_pll_ref_clk = OSC_50_B8A;
     assign ddr3_b_pll_ref_clk = OSC_50_B7A;
     assign config_clk_clk = OSC_50_B3B;
-    assign qdriib_pll_ref_clk = OSC_50_B4A;
-    assign qdriid_pll_ref_clk = OSC_50_B8D;
+    assign qdrii_b_pll_ref_clk = OSC_50_B4A;
+    assign qdrii_d_pll_ref_clk = OSC_50_B8D;
     assign kernel_pll_refclk_clk = OSC_50_B3D;
-    assign locala_pll_ref_clk = OSC_50_B8A;
-    assign localb_pll_ref_clk = OSC_50_B8A;
-    assign localc_pll_ref_clk = OSC_50_B8A;
-    assign locald_pll_ref_clk = OSC_50_B8A;
 
     //=======================================================
     //  Reset logic 
