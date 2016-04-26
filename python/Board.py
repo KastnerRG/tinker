@@ -1,14 +1,52 @@
-import xml.etree.ElementTree as ET
-from collections import defaultdict, Counter
-import Memory
-import Tinker
-import math
+# ----------------------------------------------------------------------
+# Copyright (c) 2016, The Regents of the University of California All
+# rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
+#       with the distribution.
+#
+#     * Neither the name of The Regents of the University of California
+#       nor the names of its contributors may be used to endorse or
+#       promote products derived from this software without specific
+#       prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL REGENTS OF THE
+# UNIVERSITY OF CALIFORNIA BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+# OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+# TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# ----------------------------------------------------------------------
+# Filename: Board.py
+# Version: 0.1 
+# Description: Defines the Board object, which contains all of the methods
+# necessary to create a custom board for the Altera OpenCL Compiler
+# Author: Dustin Richmond
 
-class Board(ET.Element):
-    def __init__(self, xml, version, name):
-        super(Board, self).__init__("board")
-        self.set("version", version)
-        self.set("name", name)
+# Import Python Utilities
+import xml.etree.ElementTree as ET, math
+from collections import defaultdict, Counter
+# Import Tinker Objects
+import Memory, Tinker
+
+class Board():
+    def __init__(self, xml):
+        Tinker.check_path(xml)
         self.types = {}
         self.info = self.parse_info(ET.parse(xml)) 
 
@@ -49,6 +87,7 @@ class Board(ET.Element):
                              "ffs":0,
                              "rams":0,
                              "dsps":0})
+        
         for sys in s["Systems"]:
             t = s[sys]["Type"]
             resources.update(self.info[t]["resources"])
@@ -72,17 +111,16 @@ class Board(ET.Element):
                 if(sys == "0"):
                     size_default += int(s[sys][i]["Size"],16)
 
-
-
         # ACL Plumbing
         intfs = ET.SubElement(r, "interfaces")
-        # TODO: board, not acl_iface
+        
+        # TODO: What is the purpose of misc?
         kernel_cra = ET.SubElement(intfs,"interface",
                                    attrib={"name":"tinker",
                                             "port":"kernel_cra",
                                             "type":"master",
                                             "width":"64",
-                                            "misc":"0"}) # Purpose of misc?
+                                            "misc":"0"})
 
         kernel_irq = ET.SubElement(intfs,"interface",
                                    attrib={"name":"tinker",
@@ -103,11 +141,7 @@ class Board(ET.Element):
         # Host Interface
         host = ET.SubElement(r,"host")
         ET.SubElement(host,"kernel_config",
-                      attrib={"start":"0x00000000","size":"0x0100000"})
-        
-
-
-
+                      attrib={"start":"0x00000000","size":"0x0100000"})        
         return r
 
     def gen_macros(self, spec):

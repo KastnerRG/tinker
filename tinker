@@ -1,22 +1,49 @@
 #!/usr/bin/env python
-import argparse as ap
-import os
-import shutil
-import xml.etree.ElementTree as et
+# ----------------------------------------------------------------------
+# Copyright (c) 2016, The Regents of the University of California All
+# rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
+#       with the distribution.
+#
+#     * Neither the name of The Regents of the University of California
+#       nor the names of its contributors may be used to endorse or
+#       promote products derived from this software without specific
+#       prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL REGENTS OF THE
+# UNIVERSITY OF CALIFORNIA BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+# OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+# TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# ----------------------------------------------------------------------
+# Filename: tinker.py
+# Version: 0.1 
+# Description: Top-level tinker script to generate a custom board-support
+# package for the Altera OpenCL Compiler
+# Author: Dustin Richmond
+
+# Import Python Utilities
+import os, shutil, xml.etree.ElementTree as et, argparse as ap
 from xml.dom import minidom
-
-import Board
-import Specification
-import Tinker
-def checkdist(tp):
-    if(not os.path.exists(tp)):
-        print "ERROR: Path %s does not exist", tp
-        exit(1)
-
-def checkvar(v):
-    if(v not in os.environ):
-        print "ERROR: Environment Variable %s not set",v
-        exit(1)
+# Import Tinker Objects
+import Tinker, Board, Specification
 
 def buildargs(par):
     par.add_argument("-l", "--list-boards", action="store_true",
@@ -27,44 +54,19 @@ def buildargs(par):
                     metavar=("<path-to-specification>","<version>","<board_name>"),
                     help="Generate a Board Support Package (BSP) using"+
                     "the specification within the text file")
-
-def get_available_versions(path):
-    p = path + "boards/versions.xml"
-    r = et.parse(p)
-    versions = []
-    for e in r.findall("./release/[@version]"):
-        versions.append(e.get("version"))
-    return versions
     
-def get_available_boards(path, ver):
-    p = path + "boards/versions.xml"
-    r = et.parse(p)
-    es = r.findall("./release/[@version='%s']" % str(ver))
-    if(len(es) > 1):
-        print "ERROR: Multiple matches for version %s" % str(ver)
-    e = es[0]
-
-    p = os.path.expandvars(e.get("path")) + "/boards.xml"
-    boardr = et.parse(p)
-    names = []
-    for board in boardr.iterfind(("./board/[@version='%s']" % ver)):
-        name = board.get("name")
-        names.append(name)
-        
-    return names
-
-def list_boards(tinker_path):
-    versions = get_available_versions(tinker_path)
+def list_boards(tinker):
+    versions = tinker.get_versions()
     print "Supported Quartus Versions:",
-    for ver in versions:
-        print ver,
+    for version in versions:
+        print version,
     print
 
     version = ""
     name = ""
-    for ver in versions:
-        boards = get_available_boards(tinker_path, ver)
-        print "Boards available for %s:" % ver
+    for version in versions:
+        boards = tinker.get_boards(version)
+        print "Boards available for %s:" % version
         for board in boards:
             print "\t" + board + " ",
         print
@@ -73,64 +75,66 @@ def list_boards(tinker_path):
     print "available on a board, use the -i flag, for example:"
     print "\tboardgen -i %s %s" % (version,name)
 
-checkvar("TINKER_PATH")
-checkvar("TCLXML_PATH")
-tinker_path = os.path.expandvars("${TINKER_PATH}") + "/"
-checkdist(tinker_path)
+def main():
+    tinker = Tinker.Tinker()
+    par = ap.ArgumentParser(description="Generate a Board Support Package for Altera's OpenCL Compiler")
+    buildargs(par)
+    args = par.parse_args()
 
-par = ap.ArgumentParser(description="Generate a Board Support Package for Altera's OpenCL Compiler")
-buildargs(par)
-args = par.parse_args()
-
-
-if(args.list_boards):
-    list_boards(tinker_path)
-elif(args.get_board_info):
-    version = args.get_board_info[0]
-    board = args.get_board_info[1]
-    # TODO: Build path from XML file
-    b = Board.Board(tinker_path + "/boards/%s/%s/%s.xml" % (version,board,board), version, board)
-    d = b.get_info()
-    print "Getting Info for Board %s, Version %s" % (board, version)
-    b.print_info(0)
-elif(args.generate):
-    path = args.generate[0]
-    version = args.generate[1]
-    board = args.generate[2]
-    # TODO: Check if board is available...
-    skel_path = tinker_path + "/boards/%s/%s/" % (version,board)
-    b = Board.Board(skel_path + "%s.xml" % board, version, board)
-    s = Specification.Specification(path)
-    outdir_path = "./" + board + "_" + s.get_info()["Name"] + "/"
-    try:
-        shutil.rmtree(outdir_path)
-    except:
-        pass
-
-    shutil.copytree(skel_path, outdir_path)
-
-    # Build Board Specification and Board Spec files
-    specification = b.build_spec(s, version, specification=True)
-    specification_fp = open(outdir_path + "board_specification.xml","w")
-    specification_fp.write(Tinker.prettify(specification))
-    specification_fp.close()
-    
-    spec = b.build_spec(s, version, specification=False) #todo
-    spec_et = et.ElementTree(spec)
-    spec_fp = open(outdir_path + "board_spec.xml","w")
-    spec_fp.write(Tinker.prettify(spec))
-    spec_fp.close()
-
-    # Build System.qsys
-    sys = b.gen_system(s,outdir_path + "system.qsys")
-    sys_et = et.ElementTree(sys)
-    sys_et.write(outdir_path + "system.qsys", encoding="UTF-8", xml_declaration=True)
-
-    # Move TCL Files
-    shutil.copytree(tinker_path + "/tcl/", outdir_path + "/tcl/")
-
-    # Generate Macro file
-    macros = b.gen_macros(s)
-    macro_fp = open(outdir_path + "tinker.vh", "w")
-    macro_fp.write(macros)
-    macro_fp.close()
+    if(args.list_boards):
+        list_boards(tinker)
+    elif(args.get_board_info):
+        version = args.get_board_info[0]
+        board = args.get_board_info[1]
+        tinker.check_board(version,board)
+        
+        b = Board.Board(tinker.get_board_path(version, board))
+        d = b.get_info()
+        print "Getting Info for Board %s, Version %s" % (board, version)
+        b.print_info(0)
+        
+    elif(args.generate):
+        path = args.generate[0]
+        version = args.generate[1]
+        board = args.generate[2]
+        tinker.check_board(version, board)
+        
+        src_path = tinker.get_board_path(version, board)
+        b = Board.Board(tinker.get_board_xml(version,board))
+        s = Specification.Specification(path)
+        
+        outdir_path = "./" + board + "_" + s.get_info()["Name"] + "/"
+        try:
+            shutil.rmtree(outdir_path)
+        except:
+            pass
+        
+        shutil.copytree(src_path, outdir_path)
+        
+        # Build Board Specification and Board Spec files
+        specification = b.build_spec(s, version, specification=True)
+        specification_fp = open(outdir_path + "board_specification.xml","w")
+        specification_fp.write(Tinker.prettify(specification))
+        specification_fp.close()
+        
+        spec = b.build_spec(s, version, specification=False)
+        spec_fp = open(outdir_path + "board_spec.xml","w")
+        spec_fp.write(Tinker.prettify(spec))
+        spec_fp.close()
+        
+        # Build System.qsys
+        sys = b.gen_system(s,outdir_path + "system.qsys")
+        sys_et = et.ElementTree(sys)
+        sys_et.write(outdir_path + "system.qsys", encoding="UTF-8", xml_declaration=True)
+        
+        # Move TCL Files
+        shutil.copytree(tinker.get_tcl_path(version), outdir_path + "/tcl/")
+        
+        # Generate Macro file
+        macros = b.gen_macros(s)
+        macro_fp = open(outdir_path + "tinker.vh", "w")
+        macro_fp.write(macros)
+        macro_fp.close()
+        
+if __name__ == "__main__":
+    main()
