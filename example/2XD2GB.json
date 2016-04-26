@@ -1,6 +1,7 @@
 {"Name":"2XD2GB",
  "Systems":["0"],
  "0":{"System": "0",
+      "Role":"primary",
       "Interfaces":["a","b"],
       "Primary":"a",
       "Type":"DDR3",
