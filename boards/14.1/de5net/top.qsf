@@ -17,6 +17,7 @@ set_global_assignment -name POST_MODULE_SCRIPT_FILE "quartus_cdb:scripts/post_mo
 set_global_assignment -name SDC_FILE top.sdc
 set_global_assignment -name VERILOG_FILE top.v
 set_global_assignment -name SDC_FILE top_post.sdc
+set_global_assignment -name QIP_FILE system/synthesis/system.qip
 set_global_assignment -name SEARCH_PATH megafunctions/ -tag from_archive
 set_global_assignment -name SEARCH_PATH scripts/ -tag from_archive
 set_global_assignment -name SEARCH_PATH tcl/ -tag from_archive
@@ -603,7 +604,7 @@ set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to ddr3_a_mem_dm[7]
 set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3_a_mem_dm[7]
 
 set_location_assignment PIN_C34 -to ddr3_a_mem_dqs[0]s
-et_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3_a_mem_dqs[0]
+set_instance_assignment -name PACKAGE_SKEW_COMPENSATION ON -to ddr3_a_mem_dqs[0]
 set_instance_assignment -name IO_STANDARD "DIFFERENTIAL 1.5-V SSTL CLASS I" -to ddr3_a_mem_dqs[0]
 set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to ddr3_a_mem_dqs[0]
 set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITH CALIBRATION" -to ddr3_a_mem_dqs[0]
