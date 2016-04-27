@@ -78,7 +78,8 @@ class Board():
 
     def build_spec(self, spec, version, specification=False):
         s = spec.get_info()
-        r = ET.Element("board", attrib={"version": version, "name":self.info["name"] + "_" + s["Name"]})
+        # TODO: Why does version = 14.1 fail?
+        r = ET.Element("board", attrib={"version": "0.9", "name":self.info["name"] + "_" + s["Name"]})
         if(specification):
             r.set("file", self.info["name"]+".xml")
 
@@ -126,7 +127,7 @@ class Board():
                                    attrib={"name":"tinker",
                                            "port":"kernel_irq",
                                            "type":"irq",
-                                           "width":"q"})
+                                           "width":"1"})
         snoop = ET.SubElement(intfs,"interface",
                               attrib={"name":"tinker",
                                       "port":"acl_internal_snoop",
@@ -174,7 +175,7 @@ class Board():
                                           "dir":"end"})
                 if(r == "primary" or r == "independent"):
                     ET.SubElement(sysroot,"interface",
-                                  attrib={"name":n,
+                                  attrib={"name":n + "_pll_ref",
                                           "internal":"tinker."+n+"_pll_ref",
                                           "type":"conduit",
                                           "dir":"end"})
