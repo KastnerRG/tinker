@@ -15,6 +15,7 @@
 \usepackage[export]{adjustbox}
 \usepackage{caption}
 \usepackage{contour}
+\usepackage{longtable}
 \makeatletter
 \newcount\dirtree@lvl
 \newcount\dirtree@plvl
@@ -67,8 +68,7 @@
 \tableofcontents
 
 \chapter{Introduction: Tinker}
-\section{What is Tinker}
-
+\label{Chapter:Intro}
 \section{Licensing}
 
 Copyright (c) 2016, The Regents of the University of California All rights
@@ -102,6 +102,51 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+\section{What is Tinker}
+\section{Understanding this User Guide}
+In this user guide, we use the following conventions:
+\begin{center}
+  \begin{tabular}{ | l | l |}
+    \hline
+    Object & Example \\ \hline
+    Directories and Paths & \Directory{tinker/boards/14.1}  \\ \hline
+    Configuration Setting & \ConfigSetting{Number of Lanes} \\ \hline
+    Terminal Command, Code Snippet & \TermCmd{echo ``Hello World''}\\ \hline
+  \end{tabular}
+\end{center}
+
+\section{Decoding What's Provided}
+\label{Chapter:Intro:Sec:Decoding}
+Fig~\ref{Fig:Tinker:DirStructure} shows the directory hierarchy of RIFFA. This
+instruction manual uses this directory tree when specifying all directory paths.
+
+\begin{itemize}
+\item \Directory{boards/} contains all of boards supported by tinker, grouped by Quartus Version
+\item \Directory{docs/} contains all of the documentation for this project
+\item \Directory{example/} contains a set of example user specifications (written in JSON)
+\item \Directory{python/} contains all of the Python files necessary for running tinker
+\item \Directory{tcl/} contains all of the tcl scripts used by Quartus/Qsys during OpenCL Compilation
+\item \Directory{tests/} contains a set of tests that can be used to test a custom board. 
+\end{itemize}
+
+\begin{figure}[H]
+  \begin{tikzpicture}[dirtree]
+    \node {tinker}
+    child { 
+      node {boards}
+      child { 
+        node {14.1} 
+      }
+    }
+    child { 
+      node {docs}
+      child { 
+        node {tinker\_documentation.pdf (this file)}
+      }
+    };
+  \end{tikzpicture}
+  \caption{Directory hierarchy of the RIFFA \TinkerVersion~distribution} \label{Fig:Tinker:DirStructure}
+\end{figure}
 
 \section{Release Notes}
 \subsection{Tinker 1.0 (Beta)}
@@ -110,21 +155,42 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   \item Support for Terasic DE5Net Board in Quartus 14.1
 \end{itemize}
 \pagebreak
-\chapter{Getting Started}
-\label{Chapter:Tinker:Start}
+\chapter{Setup and Installation}
+\label{Chapter:Setup}
 \section{Dependencies}
 % TODO: TCLXML, Python, Quartus, Linux
 \section{Environment}
 % TODO: Set Environment Variables: TCLXML_PATH TINKER_PATH
 \pagebreak
-\chapter{Generating a Custom Board}
-\label{Chapter:Tinker:Generating}
+\chapter{Generating and Compiling a Custom Board}
+\label{Chapter:Generating}
+\section{Running the Board Generation Utility tinker}
+\label{Chapter:Generating:Sec:Tinker}
+\section{Custom Board Installation}
+\label{Chapter:Generating:Sec:Installation}
+\section{Custom Board Compilation}
+\label{Chapter:Generating:Sec:Compilation}
 \pagebreak
-\chapter{Compiling for a Custom Board}
-\label{Chap:Tinker:Compiling}
-\pagebreak
-\chapter{Adding Support for a Board}
-\label{Chap:Tinker:Adding}
+\chapter{Adding Support a New Board}
+\label{Chapter:Adding}
+\section{Top Level Design File}
+\label{Chapter:Adding:Section:Top}
+\section{Board XML File}
+\label{Chapter:Adding:Section:XML}
+
+\section{Project File}
+\label{Chapter:Adding:Section:Project}
+\section{Timing Files}
+\label{Chapter:Adding:Section:Timing}
+\subsection{Memory Interfaces}
+\label{Chapter:Adding:Section:Project:Sub:Memories}
+\section{Qsys Files}
+\label{Chapter:Adding:Section:Qsys}
+% Kernel Interface
+\section{Installation}
+\label{Chapter:Adding:Section:Installation}
+\section{Testing}
+\label{Chapter:Adding:Section:Testing}
 \pagebreak
 \chapter{Developer Documentation}
 \label{Chap:Tinker:Adding}
