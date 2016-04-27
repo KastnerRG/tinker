@@ -158,12 +158,8 @@ module top
     wire           ddr3_b_pll_ref_clk;
     wire           config_clk_clk;
     wire           kernel_pll_refclk_clk;
-    wire           qdriib_pll_ref_clk;
-    wire           qdriid_pll_ref_clk;
-    wire           locala_pll_ref_clk;
-    wire           localb_pll_ref_clk;
-    wire           localc_pll_ref_clk;
-    wire           locald_pll_ref_clk;
+    wire           qdrii_b_pll_ref_clk;
+    wire           qdrii_d_pll_ref_clk;
 
     //=======================================================
     //  Board-specific 
