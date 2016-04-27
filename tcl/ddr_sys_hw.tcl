@@ -131,7 +131,7 @@ proc compose { } {
 	set_interface_property dma_rw EXPORT_OF dma_$sys_id\_clock_crossing_bridge.s0
 
 	add_interface dma_clk clock sink
-	set_interface_property dma__clk EXPORT_OF dma_$sys_id\_clock_crossing_bridge.s0_clk
+	set_interface_property dma_clk EXPORT_OF dma_$sys_id\_clock_crossing_bridge.s0_clk
 
 	add_interface dma_reset reset sink
 	set_interface_property dma_reset EXPORT_OF dma_$sys_id\_clock_crossing_bridge.s0_reset

@@ -169,8 +169,8 @@ class Board():
                                       "dir":"end"})
                 if(r == "primary"):
                     ET.SubElement(sysroot,"interface",
-                                  attrib={"name":n,
-                                          "internal":"tinker."+n+"_mem_oct",
+                                  attrib={"name":n+"_mem_oct",
+                                          "internal":"tinker."+n+"_oct",
                                           "type":"conduit",
                                           "dir":"end"})
                 if(r == "primary" or r == "independent"):
