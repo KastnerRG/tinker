@@ -1,0 +1,131 @@
+\documentclass{refrep}
+\settextfraction{.9}
+\usepackage{extramarks}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{tikz}
+\usepackage[plain]{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{datetime}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+\usepackage{caption}
+\usepackage{contour}
+\makeatletter
+\newcount\dirtree@lvl
+\newcount\dirtree@plvl
+\newcount\dirtree@clvl
+\def\dirtree@growth{
+  \ifnum\tikznumberofcurrentchild=1\relax
+  \global\advance\dirtree@plvl by 1
+  \expandafter\xdef\csname dirtree@p@\the\dirtree@plvl\endcsname{\the\dirtree@lvl}
+  \fi
+  \global\advance\dirtree@lvl by 1\relax
+  \dirtree@clvl=\dirtree@lvl
+  \advance\dirtree@clvl by -\csname dirtree@p@\the\dirtree@plvl\endcsname
+  \pgf@xa=.25cm\relax
+  \pgf@ya=-.5cm\relax
+  \pgf@ya=\dirtree@clvl\pgf@ya
+  \pgftransformshift{\pgfqpoint{\the\pgf@xa}{\the\pgf@ya}}%
+  \ifnum\tikznumberofcurrentchild=\tikznumberofchildren
+  \global\advance\dirtree@plvl by -1
+  \fi
+}
+
+\tikzset{
+  dirtree/.style={
+    growth function=\dirtree@growth,
+    every node/.style={anchor=north},
+    every child node/.style={anchor=west},
+    edge from parent path={(\tikzparentnode\tikzparentanchor) |- (\tikzchildnode\tikzchildanchor)}
+  }
+}
+
+\makeatother
+\graphicspath{ {images/vc707/} {images/vc709/} {images/qsys/} {images/ipc/} {images/perf/} {images/}}
+\newcommand{\TinkerVersion}{Tinker 1.0 (Beta)}
+\newcommand{\figurewidth}{350px}
+\newcommand{\Directory}[1]{\textit{#1}}
+\newcommand{\EnvVariable}[1]{\textbf{#1}}
+\newcommand{\TermCmd}[1]{\$ \texttt{#1}}
+\newcommand{\TODO}[1]{\textbf{\color{red}{#1}}}
+\newcommand{\Altera}[1]{{\color{blue}{#1}}}
+\newcommand{\ConfigSetting}[1]{\textbf{#1}}
+
+\title{{\TinkerVersion} Documentation}
+\author{Dustin Richmond}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\pagebreak
+\tableofcontents
+
+\chapter{Introduction: Tinker}
+\section{What is Tinker}
+
+\section{Licensing}
+
+Copyright (c) 2016, The Regents of the University of California All rights
+reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+\begin{itemize}
+    \item Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+
+    \item Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+    \item Neither the name of The Regents of the University of California
+      nor the names of its contributors may be used to endorse or
+      promote products derived from this software without specific
+      prior written permission.
+\end{itemize}
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL REGENTS OF THE UNIVERSITY OF CALIFORNIA BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+\section{Release Notes}
+\subsection{Tinker 1.0 (Beta)}
+\begin{itemize}
+  \item Beta Release: There may be bugs in this version. 
+  \item Support for Terasic DE5Net Board in Quartus 14.1
+\end{itemize}
+\pagebreak
+\chapter{Getting Started}
+\label{Chapter:Tinker:Start}
+\section{Dependencies}
+% TODO: TCLXML, Python, Quartus, Linux
+\section{Environment}
+% TODO: Set Environment Variables: TCLXML_PATH TINKER_PATH
+\pagebreak
+\chapter{Generating a Custom Board}
+\label{Chapter:Tinker:Generating}
+\pagebreak
+\chapter{Compiling for a Custom Board}
+\label{Chap:Tinker:Compiling}
+\pagebreak
+\chapter{Adding Support for a Board}
+\label{Chap:Tinker:Adding}
+\pagebreak
+\chapter{Developer Documentation}
+\label{Chap:Tinker:Adding}
+\end{document}
