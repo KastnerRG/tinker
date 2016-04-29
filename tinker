@@ -88,7 +88,7 @@ def main():
         board = args.get_board_info[1]
         tinker.check_board(version,board)
         
-        b = Board.Board(tinker.get_board_path(version, board))
+        b = Board.Board(tinker.get_board_xml(version, board))
         d = b.get_info()
         print "Getting Info for Board %s, Version %s" % (board, version)
         b.print_info(0)
@@ -103,7 +103,8 @@ def main():
         b = Board.Board(tinker.get_board_xml(version,board))
         s = Specification.Specification(path)
         
-        outdir_path = "./" + board + "_" + s.get_info()["Name"] + "/"
+        board_name = board + "_" + s.get_info()["Name"]
+        outdir_path = "./" + board_name + "/"
         try:
             shutil.rmtree(outdir_path)
         except:
@@ -135,6 +136,8 @@ def main():
         macro_fp = open(outdir_path + "tinker.vh", "w")
         macro_fp.write(macros)
         macro_fp.close()
+
+        print "Board %s generated" % board_name
         
 if __name__ == "__main__":
     main()
