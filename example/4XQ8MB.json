@@ -9,17 +9,17 @@
        "a": {"ID":"a",
 	     "Role":"secondary", 
 	     "Size":"0x800000",
-	     "Master":"a"},
+	     "Master":"b"},
        "b": {"ID":"b",
 	     "Role":"primary",
 	     "Size":"0x800000"},
        "c": {"ID":"c",
 	     "Role":"secondary", 
-	     "Master":"a",
+	     "Master":"b",
 	     "Size":"0x800000"},
        "d": {"ID":"d",
 	     "Role":"independent", 
-	     "Master":"a",
+	     "Master":"b",
 	     "Size":"0x800000"}
       }
 }
