@@ -71,74 +71,74 @@ module top
      input         ddr3_b_mem_oct_rzqin,
 `endif
     
-     /////////QDRIIA/////////
-`ifdef ENABLE_QDRIIA
-     output [19:0] qdriia_mem_a,
-     output [1:0]  qdriia_mem_bws_n,
-     input         qdriia_mem_cq_n,
-     input         qdriia_mem_cq,
-     output [17:0] qdriia_mem_d,
-     output        qdriia_mem_doff_n,
-     output        qdriia_mem_k_n,
-     output        qdriia_mem_k,
-     output        qdriia_mem_odt,
-     input [17:0]  qdriia_mem_q,
-     input         qdriia_mem_qvld,
-     output        qdriia_mem_rps_n,
-     output        qdriia_mem_wps_n,
+     /////////QDRII_A/////////
+`ifdef ENABLE_QDRII_A
+     output [19:0] qdrii_a_mem_a,
+     output [1:0]  qdrii_a_mem_bws_n,
+     input         qdrii_a_mem_cq_n,
+     input         qdrii_a_mem_cq,
+     output [17:0] qdrii_a_mem_d,
+     output        qdrii_a_mem_doff_n,
+     output        qdrii_a_mem_k_n,
+     output        qdrii_a_mem_k,
+     output        qdrii_a_mem_odt,
+     input [17:0]  qdrii_a_mem_q,
+     input         qdrii_a_mem_qvld,
+     output        qdrii_a_mem_rps_n,
+     output        qdrii_a_mem_wps_n,
 `endif
 
-     /////////QDRIIB/////////
-`ifdef ENABLE_QDRIIB
-     output [19:0] qdriib_mem_a,
-     output [1:0]  qdriib_mem_bws_n,
-     input         qdriib_mem_cq_n,
-     input         qdriib_mem_cq,
-     output [17:0] qdriib_mem_d,
-     output        qdriib_mem_doff_n,
-     output        qdriib_mem_k_n,
-     output        qdriib_mem_k,
-     output        qdriib_mem_odt,
-     input [17:0]  qdriib_mem_q,
-     input         qdriib_mem_qvld,
-     output        qdriib_mem_rps_n,
-     output        qdriib_mem_wps_n,
+     /////////QDRII_B/////////
+`ifdef ENABLE_QDRII_B
+     output [19:0] qdrii_b_mem_a,
+     output [1:0]  qdrii_b_mem_bws_n,
+     input         qdrii_b_mem_cq_n,
+     input         qdrii_b_mem_cq,
+     output [17:0] qdrii_b_mem_d,
+     output        qdrii_b_mem_doff_n,
+     output        qdrii_b_mem_k_n,
+     output        qdrii_b_mem_k,
+     output        qdrii_b_mem_odt,
+     input [17:0]  qdrii_b_mem_q,
+     input         qdrii_b_mem_qvld,
+     output        qdrii_b_mem_rps_n,
+     output        qdrii_b_mem_wps_n,
      /// RZQ ///
-     input         qdriib_mem_oct_rzqin,
+     input         qdrii_b_mem_oct_rzqin,
 `endif
 
-     /////////QDRIIC/////////
-`ifdef ENABLE_QDRIIC
-     output [19:0] qdriic_mem_a,
-     output [1:0]  qdriic_mem_bws_n,
-     input         qdriic_mem_cq_n,
-     input         qdriic_mem_cq,
-     output [17:0] qdriic_mem_d,
-     output        qdriic_mem_doff_n,
-     output        qdriic_mem_k_n,
-     output        qdriic_mem_k,
-     output        qdriic_mem_odt,
-     input [17:0]  qdriic_mem_q,
-     input         qdriic_mem_qvld,
-     output        qdriic_mem_rps_n,
-     output        qdriic_mem_wps_n,
+     /////////QDRII_C/////////
+`ifdef ENABLE_QDRII_C
+     output [19:0] qdrii_c_mem_a,
+     output [1:0]  qdrii_c_mem_bws_n,
+     input         qdrii_c_mem_cq_n,
+     input         qdrii_c_mem_cq,
+     output [17:0] qdrii_c_mem_d,
+     output        qdrii_c_mem_doff_n,
+     output        qdrii_c_mem_k_n,
+     output        qdrii_c_mem_k,
+     output        qdrii_c_mem_odt,
+     input [17:0]  qdrii_c_mem_q,
+     input         qdrii_c_mem_qvld,
+     output        qdrii_c_mem_rps_n,
+     output        qdrii_c_mem_wps_n,
 `endif
 
-     /////////QDRIID/////////
-`ifdef ENABLE_QDRIID
-     output [19:0] qdriid_mem_a,
-     output [1:0]  qdriid_mem_bws_n,
-     input         qdriid_mem_cq_n,
-     input         qdriid_mem_cq,
-     output [17:0] qdriid_mem_d,
-     output        qdriid_mem_doff_n,
-     output        qdriid_mem_k_n,
-     output        qdriid_mem_k,
-     output        qdriid_mem_odt,
-     input [17:0]  qdriid_mem_q,
-     input         qdriid_mem_qvld,
-     output        qdriid_mem_rps_n,
-     output        qdriid_mem_wps_n,
+     /////////QDRII_D/////////
+`ifdef ENABLE_QDRII_D
+     output [19:0] qdrii_d_mem_a,
+     output [1:0]  qdrii_d_mem_bws_n,
+     input         qdrii_d_mem_cq_n,
+     input         qdrii_d_mem_cq,
+     output [17:0] qdrii_d_mem_d,
+     output        qdrii_d_mem_doff_n,
+     output        qdrii_d_mem_k_n,
+     output        qdrii_d_mem_k,
+     output        qdrii_d_mem_odt,
+     input [17:0]  qdrii_d_mem_q,
+     input         qdrii_d_mem_qvld,
+     output        qdrii_d_mem_rps_n,
+     output        qdrii_d_mem_wps_n,
 `endif
 
      //////// LED //////////
