@@ -42,7 +42,7 @@
 import xml.etree.ElementTree as ET, math
 from collections import defaultdict
 # Import Tinker Objects
-import DDR, QDR, Phy, IP
+import DDR, QDR, Phy, IP, Tinker
 
 class Memory(IP.IP):
     def __init__(self, xml):
@@ -88,7 +88,9 @@ class Memory(IP.IP):
         s = spec.get_info()
         r = ET.Element("global_mem", attrib={"name": self.info["type"] + "_" + str(n)})
         burst = s.get("Burst","16")
-        width = int(s[n]["Width"])
+        
+        if0 = s[n]["Interfaces"][0]
+        width = int(1/(Tinker.ratio2float(s[n]["Ratio"])) * self.info[if0]["pow2_dq_pins"] * self.info[if0]["clock_ratio"])
         intbytes = int(burst) * width / 8
         r.set("interleaved_bytes", str(intbytes))
         if(n == "0"):
@@ -106,7 +108,7 @@ class Memory(IP.IP):
             e = i.build_spec(spec,n,id,base+size,burst,width,specification=specification)
             size += int(s[n][id]["Size"],16)
             r.append(e);
-
+        
         r.set("max_bandwidth", str(int(bandwidth)/1000000))
         if(specification):
             r.set("base_address",hex(base))

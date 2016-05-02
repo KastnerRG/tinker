@@ -38,7 +38,7 @@
 # architecture
 # Author: Dustin Richmond
 import Tinker, Phy
-
+import xml.etree.ElementTree as ET
 class QDR(Phy.Phy):
     def __init__(self, e, enum):
         self.t = "QDR"
@@ -48,6 +48,7 @@ class QDR(Phy.Phy):
 
     def __parse_info(self, e, t, id):
         d = {}
+        d["clock_ratio"] = 2
         d["type"] = "QDR"
         fmax_mhz = e.get("fmax_mhz")
         if(not Tinker.is_number(fmax_mhz)):

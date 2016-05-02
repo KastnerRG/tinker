@@ -49,6 +49,7 @@ class DDR(Phy.Phy):
         
     def __parse_info(self, e, t, id):
         d = {}
+        d["clock_ratio"] = 2
         d["type"] = "DDR"
         fmax_mhz = e.get("fmax_mhz")
         if(not Tinker.is_number(fmax_mhz)):

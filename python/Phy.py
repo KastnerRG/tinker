@@ -132,6 +132,7 @@ class Phy(IP.IP):
         print l*"\t" + "Interface ID: %s" % self.info["id"]
         print (l + 1)*"\t" + "Size: 0x%x (%d bytes)" % (self.info["size"],self.info["size"])
         print (l + 1)*"\t" + "Max Freq: %s MHz" % str(self.info["fmax_mhz"])
+        print (l + 1)*"\t" + "Fabric Ratios: %s" % str(self.info["ratios"])
         print (l + 1)*"\t" + "Associated Interfaces: %s" % str(self.info["group"])
         print (l + 1)*"\t" + "Roles: %s " % str(self.info["roles"])
         print (l + 1)*"\t" + "Ports: %s " % str(self.info["ports"])
