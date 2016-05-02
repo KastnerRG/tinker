@@ -91,8 +91,8 @@ class QDR(Phy.Phy):
         size = dqp2/8 * (2**ap) * b
         d["size"] = size
 
-        d["bandwidth_bs"] = fmax_mhz * 10*6 * 2 * dqp2 / 8
-        
+        d["bandwidth_bs"] = (fmax_mhz * 10**6 * 2 * dqp2) / 8
+
         return d
 
     def set_params(self):
