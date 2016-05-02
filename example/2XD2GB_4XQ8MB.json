@@ -32,7 +32,7 @@
 	     "Master":"b",
 	     "Size":"0x800000"},
        "d": {"ID":"d",
-	     "Role":"secondary", 
+	     "Role":"independent", 
 	     "Master":"b",
 	     "Size":"0x800000"}
       }
