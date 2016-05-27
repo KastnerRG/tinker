@@ -90,10 +90,10 @@ set_clock_groups -asynchronous \
 #**************************************************************
 
 # Cut path to uniphy reset, this reset is asyncronous
-set_false_path -from system:system_inst|system_acl_iface:acl_iface|altera_reset_controller:reset_controller_global|altera_reset_synchronizer:alt_rst_sync_uq1|altera_reset_synchronizer_int_chain_out -to [get_registers *umemphy*ureset*reset_reg*]
+set_false_path -from system:system_inst|system_tinker:tinker|altera_reset_controller:reset_controller_global|altera_reset_synchronizer:alt_rst_sync_uq1|altera_reset_synchronizer_int_chain_out -to [get_registers *umemphy*ureset*reset_reg*]
 
 # Cut path to pcie npor - this signal is asynchronous
-set_false_path -from system:system_inst|system_acl_iface:acl_iface|sw_reset:por_reset_counter|sw_reset_n_out -to system:system_inst|system_acl_iface:acl_iface|altpcie_sv_hip_avmm_hwtcl:pcie*
+set_false_path -from system:system_inst|system_tinker:tinker|sw_reset:por_reset_counter|sw_reset_n_out -to system:system_inst|system_tinker:tinker|altera_pcie_sv_hip_avmm:pcie*
 
 # Optionally overconstrain the kernel clock in the iface or relax the kernel
 #if { $::TimeQuestInfo(nameofexecutable) == "quartus_fit" } {
@@ -110,7 +110,3 @@ set_false_path -from system:system_inst|system_acl_iface:acl_iface|sw_reset:por_
 #set_false_path -from [get_clocks system_inst|acl_iface|ddr3*]
 #set_false_path -from [get_clocks system_inst|acl_iface|pcie*]
 #set_false_path -from [get_clocks Mem*]
-
-# This was mistakenly left in partition - don't let it influence P&R
-set_false_path -from system:system_inst|system_acl_iface:acl_iface|system_acl_iface_acl_kernel_clk:acl_kernel_clk|timer:counter|counter2x*
-set_false_path -to system:system_inst|system_acl_iface:acl_iface|system_acl_iface_acl_kernel_clk:acl_kernel_clk|timer:counter|counter2x*
