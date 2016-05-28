@@ -95,8 +95,8 @@ class Memory(IP.IP):
         r.set("interleaved_bytes", str(intbytes))
         if(n == "0"):
             r.set("config_addr", "0x018")
-            # if(len(s["Systems"]) > 1 or  specification): # TODO is default 15.0 > specific? Fails in 14.1
-                # r.set("default","1")
+            if(specification): # Reintroduce in 15.1
+                r.set("default","1")
         else:
             r.set("config_addr", hex(int("0x100",16) + (int(n)-1) * int("0x18",16)))
 
