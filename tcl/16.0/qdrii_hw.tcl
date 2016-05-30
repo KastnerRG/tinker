@@ -83,10 +83,9 @@ proc compose { } {
     
     set board_path [get_parameter_value BOARD_PATH]
     set board_file $board_path/board_specification.xml
-    send_message info $board_file
     set board_fp [open $board_file]
     set board_dom [dom::parse [read $board_fp]]
-
+    set bsp_version [[dom::selectNode $board_dom /board/@version] stringValue]
     set param_file $board_path/[[dom::selectNode $board_dom /board/@file] stringValue]
     set param_fp [open $param_file]
     set param_dom [dom::parse [read $param_fp]]
