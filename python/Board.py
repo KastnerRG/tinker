@@ -79,7 +79,11 @@ class Board():
     def build_spec(self, spec, version, specification=False):
         s = spec.get_info()
         # TODO: Why does version = 14.1 fail?
-        r = ET.Element("board", attrib={"version": "0.9", "name":self.info["name"] + "_" + s["Name"]})
+        # TODO: Check Version
+        if(version == "14.1" and not specification):
+            r = ET.Element("board", attrib={"version": "0.9", "name":self.info["name"] + "_" + s["Name"]})
+        else:
+            r = ET.Element("board", attrib={"version": version, "name":self.info["name"] + "_" + s["Name"]})
         if(specification):
             r.set("file", self.info["name"]+".xml")
 

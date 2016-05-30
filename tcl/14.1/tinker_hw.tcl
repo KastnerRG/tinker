@@ -73,6 +73,7 @@ proc compose { } {
     set board_file_name [[dom::selectNode $spec_dom /board/@file] stringValue]
     set board_file $bsp_path/$board_file_name
 
+    set bsp_version [[dom::selectNode $spec_dom /board/@version] stringValue]
     set primary_id [[dom::selectNode $spec_dom /board/global_mem\[@default="1"\]/@sys_id] stringValue]
     set system_ids {}
     set secondary_ids {}
@@ -197,13 +198,13 @@ proc compose { } {
     # Instances and instance parameters
     ############################################################################
     # Reset Controllers
-    add_instance global_reset_in altera_reset_bridge 14.1
+    add_instance global_reset_in altera_reset_bridge $bsp_version
     set_instance_parameter_value global_reset_in {ACTIVE_LOW_RESET} {1}
     set_instance_parameter_value global_reset_in {SYNCHRONOUS_EDGES} {none}
     set_instance_parameter_value global_reset_in {NUM_RESET_OUTPUTS} {1}
     set_instance_parameter_value global_reset_in {USE_RESET_REQUEST} {0}
 
-    add_instance config_clk altera_clock_bridge 14.1
+    add_instance config_clk altera_clock_bridge $bsp_version
     set_instance_parameter_value config_clk {EXPLICIT_CLOCK_RATE} {50000000.0}
     set_instance_parameter_value config_clk {NUM_CLOCK_OUTPUTS} {1}
 
@@ -211,7 +212,7 @@ proc compose { } {
     set_instance_parameter_value por_reset_counter {WIDTH} {8}
     set_instance_parameter_value por_reset_counter {LOG2_RESET_CYCLES} {10}
 
-    add_instance reset_controller_global altera_reset_controller 14.1
+    add_instance reset_controller_global altera_reset_controller $bsp_version
     set_instance_parameter_value reset_controller_global {NUM_RESET_INPUTS} {2}
     set_instance_parameter_value reset_controller_global {OUTPUT_RESET_SYNC_EDGES} {deassert}
     set_instance_parameter_value reset_controller_global {SYNC_DEPTH} {2}
@@ -237,13 +238,13 @@ proc compose { } {
     set_instance_parameter_value reset_controller_global {USE_RESET_REQUEST_IN15} {0}
     set_instance_parameter_value reset_controller_global {USE_RESET_REQUEST_INPUT} {0}
 
-    add_instance global_reset altera_reset_bridge 14.1
+    add_instance global_reset altera_reset_bridge $bsp_version
     set_instance_parameter_value global_reset {ACTIVE_LOW_RESET} {1}
     set_instance_parameter_value global_reset {SYNCHRONOUS_EDGES} {deassert}
     set_instance_parameter_value global_reset {NUM_RESET_OUTPUTS} {1}
     set_instance_parameter_value global_reset {USE_RESET_REQUEST} {0}
 
-    add_instance reset_controller_pcie altera_reset_controller 14.1
+    add_instance reset_controller_pcie altera_reset_controller $bsp_version
     set_instance_parameter_value reset_controller_pcie {NUM_RESET_INPUTS} {1}
     set_instance_parameter_value reset_controller_pcie {OUTPUT_RESET_SYNC_EDGES} {deassert}
     set_instance_parameter_value reset_controller_pcie {SYNC_DEPTH} {2}
@@ -269,14 +270,14 @@ proc compose { } {
     set_instance_parameter_value reset_controller_pcie {USE_RESET_REQUEST_IN15} {0}
     set_instance_parameter_value reset_controller_pcie {USE_RESET_REQUEST_INPUT} {0}
 
-    add_instance npor_export altera_reset_bridge 14.1
+    add_instance npor_export altera_reset_bridge $bsp_version
     set_instance_parameter_value npor_export {ACTIVE_LOW_RESET} {1}
     set_instance_parameter_value npor_export {SYNCHRONOUS_EDGES} {none}
     set_instance_parameter_value npor_export {NUM_RESET_OUTPUTS} {1}
     set_instance_parameter_value npor_export {USE_RESET_REQUEST} {0}
 
     # PCIe logic 
-    add_instance pcie altera_pcie_sv_hip_avmm 14.1
+    add_instance pcie altera_pcie_sv_hip_avmm $bsp_version
     set_instance_parameter_value pcie {pcie_qsys} {1}
     set_instance_parameter_value pcie {lane_mask_hwtcl} {x8}
     set_instance_parameter_value pcie {gen123_lane_rate_mode_hwtcl} {Gen2 (5.0 Gbps)}
@@ -498,7 +499,7 @@ proc compose { } {
     set_instance_parameter_value pcie {rvod_sel_d_val_hwtcl} {43}
     set_instance_parameter_value pcie {rvod_sel_e_val_hwtcl} {15}
 
-    add_instance pipe_stage_host_ctrl altera_avalon_mm_bridge 14.1
+    add_instance pipe_stage_host_ctrl altera_avalon_mm_bridge $bsp_version
     set_instance_parameter_value pipe_stage_host_ctrl {DATA_WIDTH} {64}
     set_instance_parameter_value pipe_stage_host_ctrl {SYMBOL_WIDTH} {8}
     set_instance_parameter_value pipe_stage_host_ctrl {ADDRESS_WIDTH} {18}
@@ -519,7 +520,7 @@ proc compose { } {
     set_instance_parameter_value uniphy_status {WIDTH} {32}
     set_instance_parameter_value uniphy_status {NUM_UNIPHYS} $num_intfs
 
-    add_instance clock_cross_temp_to_pcie altera_avalon_mm_clock_crossing_bridge 14.1
+    add_instance clock_cross_temp_to_pcie altera_avalon_mm_clock_crossing_bridge $bsp_version
     set_instance_parameter_value clock_cross_temp_to_pcie {DATA_WIDTH} {32}
     set_instance_parameter_value clock_cross_temp_to_pcie {SYMBOL_WIDTH} {8}
     set_instance_parameter_value clock_cross_temp_to_pcie {ADDRESS_WIDTH} {3}
@@ -531,7 +532,7 @@ proc compose { } {
     set_instance_parameter_value clock_cross_temp_to_pcie {MASTER_SYNC_DEPTH} {2}
     set_instance_parameter_value clock_cross_temp_to_pcie {SLAVE_SYNC_DEPTH} {2}
 
-    add_instance reset_controller_temp altera_reset_controller 14.1
+    add_instance reset_controller_temp altera_reset_controller $bsp_version
     set_instance_parameter_value reset_controller_temp {NUM_RESET_INPUTS} {1}
     set_instance_parameter_value reset_controller_temp {OUTPUT_RESET_SYNC_EDGES} {deassert}
     set_instance_parameter_value reset_controller_temp {SYNC_DEPTH} {2}
@@ -557,7 +558,7 @@ proc compose { } {
     set_instance_parameter_value reset_controller_temp {USE_RESET_REQUEST_IN15} {0}
     set_instance_parameter_value reset_controller_temp {USE_RESET_REQUEST_INPUT} {0}
 
-    add_instance temperature_pll altera_pll 14.1
+    add_instance temperature_pll altera_pll $bsp_version
     set_instance_parameter_value temperature_pll {debug_print_output} {0}
     set_instance_parameter_value temperature_pll {debug_use_rbc_taf_method} {0}
     set_instance_parameter_value temperature_pll {gui_device_speed_grade} {2}
@@ -762,7 +763,7 @@ proc compose { } {
     add_instance temperature_0 temperature 10.0
 
     # ACL Kernel Interface
-    add_instance clock_cross_aclkernelclk_to_pcie altera_avalon_mm_clock_crossing_bridge 14.1
+    add_instance clock_cross_aclkernelclk_to_pcie altera_avalon_mm_clock_crossing_bridge $bsp_version
     set_instance_parameter_value clock_cross_aclkernelclk_to_pcie {DATA_WIDTH} {32}
     set_instance_parameter_value clock_cross_aclkernelclk_to_pcie {SYMBOL_WIDTH} {8}
     set_instance_parameter_value clock_cross_aclkernelclk_to_pcie {ADDRESS_WIDTH} {16}
@@ -780,16 +781,16 @@ proc compose { } {
 
     set_instance_parameter_value acl_kernel_clk {REF_CLK_RATE} {50}
 
-    add_instance clock_cross_kernel_irq altera_irq_clock_crosser 14.1
+    add_instance clock_cross_kernel_irq altera_irq_clock_crosser $bsp_version
     set_instance_parameter_value clock_cross_kernel_irq {IRQ_WIDTH} {1}
 
-    add_instance kernel_clk clock_source 14.1
+    add_instance kernel_clk clock_source $bsp_version
     set_instance_parameter_value kernel_clk {clockFrequency} {50000000.0}
     set_instance_parameter_value kernel_clk {clockFrequencyKnown} {0}
     set_instance_parameter_value kernel_clk {resetSynchronousEdges} {DEASSERT}
 
     # DMA Logic
-    add_instance clock_cross_dma_to_pcie altera_avalon_mm_clock_crossing_bridge 14.1
+    add_instance clock_cross_dma_to_pcie altera_avalon_mm_clock_crossing_bridge $bsp_version
     set_instance_parameter_value clock_cross_dma_to_pcie {DATA_WIDTH} {512}
     set_instance_parameter_value clock_cross_dma_to_pcie {SYMBOL_WIDTH} {8}
     set_instance_parameter_value clock_cross_dma_to_pcie {ADDRESS_WIDTH} {20}
@@ -801,7 +802,7 @@ proc compose { } {
     set_instance_parameter_value clock_cross_dma_to_pcie {MASTER_SYNC_DEPTH} {2}
     set_instance_parameter_value clock_cross_dma_to_pcie {SLAVE_SYNC_DEPTH} {2}
 
-    add_instance clock_cross_dmacsr_to_pcie altera_avalon_mm_clock_crossing_bridge 14.1
+    add_instance clock_cross_dmacsr_to_pcie altera_avalon_mm_clock_crossing_bridge $bsp_version
     set_instance_parameter_value clock_cross_dmacsr_to_pcie {DATA_WIDTH} {64}
     set_instance_parameter_value clock_cross_dmacsr_to_pcie {SYMBOL_WIDTH} {8}
     set_instance_parameter_value clock_cross_dmacsr_to_pcie {ADDRESS_WIDTH} {20}
@@ -813,7 +814,7 @@ proc compose { } {
     set_instance_parameter_value clock_cross_dmacsr_to_pcie {MASTER_SYNC_DEPTH} {2}
     set_instance_parameter_value clock_cross_dmacsr_to_pcie {SLAVE_SYNC_DEPTH} {2}
 
-    add_instance clock_cross_dmanondma_to_pcie altera_avalon_mm_clock_crossing_bridge 14.1
+    add_instance clock_cross_dmanondma_to_pcie altera_avalon_mm_clock_crossing_bridge $bsp_version
     set_instance_parameter_value clock_cross_dmanondma_to_pcie {DATA_WIDTH} {64}
     set_instance_parameter_value clock_cross_dmanondma_to_pcie {SYMBOL_WIDTH} {8}
     set_instance_parameter_value clock_cross_dmanondma_to_pcie {ADDRESS_WIDTH} {20}
@@ -825,7 +826,7 @@ proc compose { } {
     set_instance_parameter_value clock_cross_dmanondma_to_pcie {MASTER_SYNC_DEPTH} {2}
     set_instance_parameter_value clock_cross_dmanondma_to_pcie {SLAVE_SYNC_DEPTH} {2}
 
-    add_instance clock_cross_dma_irq altera_irq_clock_crosser 14.1
+    add_instance clock_cross_dma_irq altera_irq_clock_crosser $bsp_version
     set_instance_parameter_value clock_cross_dma_irq {IRQ_WIDTH} {1}
 
     add_instance dma acl_dma 1.0
@@ -837,11 +838,11 @@ proc compose { } {
 	set if_type [string tolower [dict get $mem_dict $sys_id type]]
 	if {[string match $if_type "qdrii"]} {
 	    send_message info $bsp_path
-	    add_instance system_$sys_id qdr_system 14.1
+	    add_instance system_$sys_id qdr_system $bsp_version
 	    set_instance_parameter_value system_$sys_id {BOARD_PATH} $bsp_path
 	    set_instance_parameter_value system_$sys_id {MEMORY_SYS_ID} $sys_id
 	} elseif {[string match $if_type "ddr3"]} {
-	    add_instance system_$sys_id ddr_system 14.1
+	    add_instance system_$sys_id ddr_system $bsp_version
 	    set_instance_parameter_value system_$sys_id {BOARD_PATH} $bsp_path
 	    set_instance_parameter_value system_$sys_id {MEMORY_SYS_ID} $sys_id
 	}

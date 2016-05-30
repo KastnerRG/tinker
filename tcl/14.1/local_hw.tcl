@@ -32,7 +32,7 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 # ----------------------------------------------------------------------
-package require -exact qsys 14.0
+package require -exact qsys 14.1
 lappend auto_path $::env(TCLXML_PATH)
 package require xml
 
@@ -329,7 +329,7 @@ proc compose { } {
     }
     # Local Memory Instantiation
     # Variable $size is in Bytes
-    add_instance local_mem altera_avalon_onchip_memory2 14.0
+    add_instance local_mem altera_avalon_onchip_memory2 14.1
     set_instance_parameter_value local_mem {allowInSystemMemoryContentEditor} {0}
     set_instance_parameter_value local_mem {blockType} {AUTO}
     set_instance_parameter_value local_mem {dataWidth} $fabric_data_width
@@ -352,7 +352,7 @@ proc compose { } {
 
     # Instantiate a PLL if this is the first mem or this memory is non-shared
     if {($role == "primary") || ($role == "independent")} {
-	add_instance local_pll altera_pll 14.0
+	add_instance local_pll altera_pll 14.1
 	set_instance_parameter_value local_pll {debug_print_output} {1}
 	set_instance_parameter_value local_pll {debug_use_rbc_taf_method} {0}
 	set_instance_parameter_value local_pll {gui_device_speed_grade} {1}

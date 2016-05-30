@@ -32,7 +32,7 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 # ----------------------------------------------------------------------
-package require -exact qsys 14.0
+package require -exact qsys 14.1
 lappend auto_path $::env(TCLXML_PATH)
 package require xml
 
@@ -216,7 +216,7 @@ proc compose { } {
     }
 
     foreach id $memory_ids {
-	add_instance local$id local_mem 1.0
+	add_instance local$id local_mem 14.1
 	set_instance_parameter_value local$id {BOARD_PATH} $board_path
 	set_instance_parameter_value local$id {MEMORY_IDENTIFIER} $id
 	set_instance_parameter_value local$id {SYSTEM_IDENTIFIER} $index
