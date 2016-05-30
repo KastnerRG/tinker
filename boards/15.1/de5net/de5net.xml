@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<board version="14.1" name="de5net" model="5sgxma7h2fe35c2_dm.xml">
+<board version="15.1" name="de5net" model="5sgxma7h2fe35c2_dm.xml">
   <memory type="DDR3" id="ddr3" quantity="2" division="discrete" alms="0" ffs="0" dsps="0" rams="0">
     <phy id="a" macro="ENABLE_DDR3_A" roles="primary, secondary, independent" grouping="a,b" ports="rw" bank_pins="3" column_pins="10" row_pins="15" dq_pins="64" rate="double" ratios="Quarter, Half, Full" fmax_mhz="800" fref_mhz="50" oct_pin="ddr3a_mem_oct_rzqin" alms="0" ffs="0" dsps="0" rams="0">
       <parameter name="TIMING_BOARD_MAX_CK_DELAY" value="1.344965382"/>
