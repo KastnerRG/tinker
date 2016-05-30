@@ -126,7 +126,7 @@
  <module
    name="global_reset"
    kind="altera_reset_bridge"
-   version="14.1"
+   version="15.1"
    enabled="1">
   <parameter name="ACTIVE_LOW_RESET" value="1" />
   <parameter name="AUTO_CLK_CLOCK_RATE" value="-1" />
@@ -134,7 +134,7 @@
   <parameter name="SYNCHRONOUS_EDGES" value="none" />
   <parameter name="USE_RESET_REQUEST" value="0" />
  </module>
- <module name="tinker" kind="tinker_architecture" version="14.1" enabled="1">
+ <module name="tinker" kind="tinker_architecture" version="15.1" enabled="1">
   <parameter name="AUTO_DEVICE" value="5SGXEA7N2F45C2" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Stratix V" />
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="2_H2" />
@@ -142,7 +142,7 @@
  </module>
  <connection
    kind="reset"
-   version="14.1"
+   version="15.1"
    start="global_reset.out_reset"
    end="tinker.global_reset" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="FIFO" />

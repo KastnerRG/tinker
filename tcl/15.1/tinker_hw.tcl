@@ -777,8 +777,8 @@ proc compose { } {
     set_instance_parameter_value kernel_interface {NUM_GLOBAL_MEMS} [llength $system_ids]
 
     add_instance acl_kernel_clk acl_kernel_clk 1.0
-
     set_instance_parameter_value acl_kernel_clk {REF_CLK_RATE} {50}
+    set_instance_parameter_value acl_kernel_clk {KERNEL_TARGET_CLOCK_RATE} {320}
 
     add_instance clock_cross_kernel_irq altera_irq_clock_crosser $bsp_version
     set_instance_parameter_value clock_cross_kernel_irq {IRQ_WIDTH} {1}
