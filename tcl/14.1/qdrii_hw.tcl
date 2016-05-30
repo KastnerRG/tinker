@@ -83,7 +83,6 @@ proc compose { } {
     
     set board_path [get_parameter_value BOARD_PATH]
     set board_file $board_path/board_specification.xml
-    send_message info $board_file
     set board_fp [open $board_file]
     set board_dom [dom::parse [read $board_fp]]
 

@@ -73,7 +73,6 @@ proc compose { } {
     set symbol_width 8
     set board_path [get_parameter_value BOARD_PATH]
     set board_file $board_path/board_specification.xml
-    send_message info $board_file
     set board_fp [open $board_file]
     set board_dom [dom::parse [read $board_fp]]
 
@@ -303,7 +302,6 @@ proc compose { } {
 	set_connection_parameter_value acl_memory_bank_divider.bank$i\_w/if_$id.dma_w defaultConnection {0}
 
 	set board_file $board_path/board_specification.xml
-	send_message info $board_file
 
 	set board_fp [open $board_file]
 	set board_dom [dom::parse [read $board_fp]]

@@ -69,7 +69,6 @@ proc compose { } {
     set symbol_width 8
     set board_path [get_parameter_value BOARD_PATH]
     set board_file $board_path/board_specification.xml
-    send_message info $board_file
 
     set board_fp [open $board_file]
     set board_dom [dom::parse [read $board_fp]]
@@ -143,7 +142,6 @@ proc compose { } {
     # Memory Kernel, Pin, and clock interfaces
     foreach mem_id $memory_ids {
 	set mem_id_role [[dom::selectNode $board_dom /board/global_mem\[@type="DDR3"\]\[@sys_id=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@role] stringValue]
-	send_message info $mem_id_role
 	# Kernel read/write interface
 	add_interface kernel_$sys_id\_if_$mem_id\_rw avalon slave
 	set_interface_property kernel_$sys_id\_if_$mem_id\_rw EXPORT_OF if_$mem_id.kernel_rw
@@ -293,7 +291,6 @@ proc compose { } {
 	set_connection_parameter_value acl_memory_bank_divider.bank$i/if_$id.dma_rw defaultConnection {0}
 
 	set board_file $board_path/board_specification.xml
-	send_message info $board_file
 
 	set board_fp [open $board_file]
 	set board_dom [dom::parse [read $board_fp]]

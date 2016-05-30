@@ -67,7 +67,6 @@ proc compose { } {
     set bsp_path [get_parameter_value BOARD_PATH]
     set spec_file $bsp_path/board_specification.xml
     set spec_fp [open $spec_file]
-    send_message info $spec_file
     set spec_dom [dom::parse [read $spec_fp]]
 
     set board_file_name [[dom::selectNode $spec_dom /board/@file] stringValue]
@@ -837,7 +836,6 @@ proc compose { } {
     foreach sys_id $system_ids {
 	set if_type [string tolower [dict get $mem_dict $sys_id type]]
 	if {[string match $if_type "qdrii"]} {
-	    send_message info $bsp_path
 	    add_instance system_$sys_id qdr_system $bsp_version
 	    set_instance_parameter_value system_$sys_id {BOARD_PATH} $bsp_path
 	    set_instance_parameter_value system_$sys_id {MEMORY_SYS_ID} $sys_id

@@ -6,10 +6,14 @@
 #**************************************************************
 # Create Clock
 #**************************************************************
-create_clock -period 50MHz [get_ports config_clk]
-create_clock -period 50MHz [get_ports Mem0_RefClk]
-create_clock -period 50MHz [get_ports Mem1_RefClk]
-create_clock -period 50MHz [get_ports kernel_pll_refclk_clk]
+create_clock -period 50MHz [get_ports OSC_50_B3B]
+create_clock -period 50MHz [get_ports OSC_50_B3D]
+create_clock -period 50MHz [get_ports OSC_50_B4A]
+create_clock -period 50MHz [get_ports OSC_50_B4D]
+create_clock -period 50MHz [get_ports OSC_50_B7A]
+create_clock -period 50MHz [get_ports OSC_50_B7D]
+create_clock -period 50MHz [get_ports OSC_50_B8A]
+create_clock -period 50MHz [get_ports OSC_50_B8D]
 
 create_clock -period 100MHz [get_ports pcie_refclk]
 
