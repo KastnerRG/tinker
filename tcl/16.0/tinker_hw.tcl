@@ -1054,12 +1054,12 @@ proc compose { } {
 	set quantity [dict get $mem_dict $sys_id interfaces]
 	# handles odd requirement Dictated by Altera OpenCL
 	if {$quantity > 1} {
-	    add_connection kernel_interfaceacl_bsp_memorg_host$config_addr system_$sys_id.memorg_host conduit
-	    set_connection_parameter_value kernel_interfaceacl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host endPort {}
-	    set_connection_parameter_value kernel_interfaceacl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host endPortLSB {0}
-	    set_connection_parameter_value kernel_interfaceacl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host startPort {}
-	    set_connection_parameter_value kernel_interfaceacl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host startPortLSB {0}
-	    set_connection_parameter_value kernel_interfaceacl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host width {0}
+	    add_connection kernel_interface.acl_bsp_memorg_host$config_addr system_$sys_id.memorg_host conduit
+	    set_connection_parameter_value kernel_interface.acl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host endPort {}
+	    set_connection_parameter_value kernel_interface.acl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host endPortLSB {0}
+	    set_connection_parameter_value kernel_interface.acl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host startPort {}
+	    set_connection_parameter_value kernel_interface.acl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host startPortLSB {0}
+	    set_connection_parameter_value kernel_interface.acl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host width {0}
 	}
     }
 

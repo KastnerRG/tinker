@@ -67,7 +67,6 @@ proc compose { } {
     set bsp_path [get_parameter_value BOARD_PATH]
     set spec_file $bsp_path/board_specification.xml
     set spec_fp [open $spec_file]
-    send_message info $spec_file
     set spec_dom [dom::parse [read $spec_fp]]
 
     set board_file_name [[dom::selectNode $spec_dom /board/@file] stringValue]
@@ -743,7 +742,6 @@ proc compose { } {
     set_instance_parameter_value temperature_pll {gui_en_dps_ports} {0}
     set_instance_parameter_value temperature_pll {gui_en_phout_ports} {0}
     set_instance_parameter_value temperature_pll {gui_phout_division} {1}
-    set_instance_parameter_value temperature_pll {gui_en_lvds_ports} {0}
     set_instance_parameter_value temperature_pll {gui_mif_generate} {0}
     set_instance_parameter_value temperature_pll {gui_enable_mif_dps} {0}
     set_instance_parameter_value temperature_pll {gui_dps_cntr} {C0}
@@ -775,7 +773,8 @@ proc compose { } {
     set_instance_parameter_value clock_cross_aclkernelclk_to_pcie {MASTER_SYNC_DEPTH} {2}
     set_instance_parameter_value clock_cross_aclkernelclk_to_pcie {SLAVE_SYNC_DEPTH} {2}
 
-    add_instance kernel_interface acl_kernel_interface 1.0
+    add_instance kernel_interface kernel_interface 1.0
+    set_instance_parameter_value kernel_interface {NUM_GLOBAL_MEMS} [llength $system_ids]
 
     add_instance acl_kernel_clk acl_kernel_clk 1.0
 
@@ -837,7 +836,6 @@ proc compose { } {
     foreach sys_id $system_ids {
 	set if_type [string tolower [dict get $mem_dict $sys_id type]]
 	if {[string match $if_type "qdrii"]} {
-	    send_message info $bsp_path
 	    add_instance system_$sys_id qdr_system $bsp_version
 	    set_instance_parameter_value system_$sys_id {BOARD_PATH} $bsp_path
 	    set_instance_parameter_value system_$sys_id {MEMORY_SYS_ID} $sys_id
@@ -974,10 +972,10 @@ proc compose { } {
     set_connection_parameter_value pipe_stage_host_ctrl.m0/pcie.Cra baseAddress {0x0000}
     set_connection_parameter_value pipe_stage_host_ctrl.m0/pcie.Cra defaultConnection {0}
 
-    add_connection pipe_stage_host_ctrl.m0 kernel_interface.kernel_cntrl avalon
-    set_connection_parameter_value pipe_stage_host_ctrl.m0/kernel_interface.kernel_cntrl arbitrationPriority {1}
-    set_connection_parameter_value pipe_stage_host_ctrl.m0/kernel_interface.kernel_cntrl baseAddress {0x4000}
-    set_connection_parameter_value pipe_stage_host_ctrl.m0/kernel_interface.kernel_cntrl defaultConnection {0}
+    add_connection pipe_stage_host_ctrl.m0 kernel_interface.ctrl avalon
+    set_connection_parameter_value pipe_stage_host_ctrl.m0/kernel_interface.ctrl arbitrationPriority {1}
+    set_connection_parameter_value pipe_stage_host_ctrl.m0/kernel_interface.ctrl baseAddress {0x4000}
+    set_connection_parameter_value pipe_stage_host_ctrl.m0/kernel_interface.ctrl defaultConnection {0}
 
     add_connection pipe_stage_host_ctrl.m0 clock_cross_aclkernelclk_to_pcie.s0 avalon
     set_connection_parameter_value pipe_stage_host_ctrl.m0/clock_cross_aclkernelclk_to_pcie.s0 arbitrationPriority {1}
@@ -1056,12 +1054,12 @@ proc compose { } {
 	set quantity [dict get $mem_dict $sys_id interfaces]
 	# handles odd requirement Dictated by Altera OpenCL
 	if {$quantity > 1} {
-	    add_connection kernel_interface.mem_org_mode_$config_addr\_host system_$sys_id.memorg_host conduit
-	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr\_host/system_$sys_id.memorg_host endPort {}
-	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr\_host/system_$sys_id.memorg_host endPortLSB {0}
-	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr\_host/system_$sys_id.memorg_host startPort {}
-	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr\_host/system_$sys_id.memorg_host startPortLSB {0}
-	    set_connection_parameter_value kernel_interface.mem_org_mode_$config_addr\_host/system_$sys_id.memorg_host width {0}
+	    add_connection kernel_interface.acl_bsp_memorg_host$config_addr system_$sys_id.memorg_host conduit
+	    set_connection_parameter_value kernel_interface.acl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host endPort {}
+	    set_connection_parameter_value kernel_interface.acl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host endPortLSB {0}
+	    set_connection_parameter_value kernel_interface.acl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host startPort {}
+	    set_connection_parameter_value kernel_interface.acl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host startPortLSB {0}
+	    set_connection_parameter_value kernel_interface.acl_bsp_memorg_host$config_addr/system_$sys_id.memorg_host width {0}
 	}
     }
 
