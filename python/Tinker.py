@@ -161,7 +161,7 @@ class Tinker():
         return p
 
     def get_tcl_path(self,version):
-        return self.path + "/tcl"
+        return self.path + "/tcl/" + str(version) + "/"
         return p
 
     def parse_boards(self, version):
