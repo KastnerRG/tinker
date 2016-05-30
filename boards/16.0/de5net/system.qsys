@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<system name="$${FILENAME}">
+ <component
+   name="$${FILENAME}"
+   displayName="$${FILENAME}"
+   version="1.0"
+   description=""
+   tags=""
+   categories="System" />
+ <parameter name="bonusData"><![CDATA[bonusData 
+{
+   element $${FILENAME}
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Stratix V";
+         type = "String";
+      }
+   }
+   element global_reset
+   {
+      datum _sortIndex
+      {
+         value = "0";
+         type = "int";
+      }
+   }
+   element system
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Stratix V";
+         type = "String";
+      }
+   }
+   element system
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Stratix V";
+         type = "String";
+      }
+   }
+   element system
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Stratix V";
+         type = "String";
+      }
+   }
+   element system
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Stratix V";
+         type = "String";
+      }
+   }
+   element tinker
+   {
+      datum _sortIndex
+      {
+         value = "1";
+         type = "int";
+      }
+   }
+}
+]]></parameter>
+ <parameter name="clockCrossingAdapter" value="FIFO" />
+ <parameter name="device" value="5SGXEA7N2F45C2" />
+ <parameter name="deviceFamily" value="Stratix V" />
+ <parameter name="deviceSpeedGrade" value="2_H2" />
+ <parameter name="fabricMode" value="QSYS" />
+ <parameter name="generateLegacySim" value="false" />
+ <parameter name="generationId" value="0" />
+ <parameter name="globalResetBus" value="false" />
+ <parameter name="hdlLanguage" value="VERILOG" />
+ <parameter name="hideFromIPCatalog" value="false" />
+ <parameter name="maxAdditionalLatency" value="0" />
+ <parameter name="projectName" value="top.qpf" />
+ <parameter name="sopcBorderPoints" value="false" />
+ <parameter name="systemHash" value="0" />
+ <parameter name="testBenchDutName" value="" />
+ <parameter name="timeStamp" value="0" />
+ <parameter name="useTestBenchNamingPattern" value="false" />
+ <instanceScript></instanceScript>
+ <interface name="config_clk" internal="tinker.config_clk" type="clock" dir="end" />
+ <interface
+   name="global_reset"
+   internal="global_reset.in_reset"
+   type="reset"
+   dir="end" />
+ <interface
+   name="kernel_pll_refclk"
+   internal="tinker.kernel_pll_refclk"
+   type="clock"
+   dir="end" />
+ <interface
+   name="pcie"
+   internal="tinker.pcie_hip_serial"
+   type="conduit"
+   dir="end" />
+ <interface name="pcie_npor" internal="tinker.pcie_npor" type="conduit" dir="end" />
+ <interface
+   name="pcie_npor_out"
+   internal="tinker.pcie_npor_out"
+   type="reset"
+   dir="start" />
+ <interface name="pcie_nreset_status" internal="tinker.pcie_nreset_status" />
+ <interface
+   name="pcie_refclk"
+   internal="tinker.pcie_refclk"
+   type="clock"
+   dir="end" />
+ <interface
+   name="reconfig_from_xcvr"
+   internal="tinker.pcie_reconfig_from_xcvr"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="reconfig_to_xcvr"
+   internal="tinker.pcie_reconfig_to_xcvr"
+   type="conduit"
+   dir="end" />
+ <module
+   name="global_reset"
+   kind="altera_reset_bridge"
+   version="16.0"
+   enabled="1">
+  <parameter name="ACTIVE_LOW_RESET" value="1" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="-1" />
+  <parameter name="NUM_RESET_OUTPUTS" value="1" />
+  <parameter name="SYNCHRONOUS_EDGES" value="none" />
+  <parameter name="USE_RESET_REQUEST" value="0" />
+ </module>
+ <module name="tinker" kind="tinker_architecture" version="16.0" enabled="1">
+  <parameter name="AUTO_DEVICE" value="5SGXEA7N2F45C2" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Stratix V" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="2_H2" />
+  <parameter name="BOARD_PATH" value=".." />
+ </module>
+ <connection
+   kind="reset"
+   version="16.0"
+   start="global_reset.out_reset"
+   end="tinker.global_reset" />
+ <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="FIFO" />
+ <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="0" />
+</system>

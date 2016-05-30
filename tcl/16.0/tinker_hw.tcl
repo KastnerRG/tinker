@@ -777,8 +777,8 @@ proc compose { } {
     set_instance_parameter_value kernel_interface {NUM_GLOBAL_MEMS} [llength $system_ids]
 
     add_instance acl_kernel_clk acl_kernel_clk 1.0
-
     set_instance_parameter_value acl_kernel_clk {REF_CLK_RATE} {50}
+    set_instance_parameter_value acl_kernel_clk {KERNEL_TARGET_CLOCK_RATE} {320}
 
     add_instance clock_cross_kernel_irq altera_irq_clock_crosser $bsp_version
     set_instance_parameter_value clock_cross_kernel_irq {IRQ_WIDTH} {1}
@@ -972,10 +972,10 @@ proc compose { } {
     set_connection_parameter_value pipe_stage_host_ctrl.m0/pcie.Cra baseAddress {0x0000}
     set_connection_parameter_value pipe_stage_host_ctrl.m0/pcie.Cra defaultConnection {0}
 
-    add_connection pipe_stage_host_ctrl.m0 kernel_interface.kernel_cntrl avalon
-    set_connection_parameter_value pipe_stage_host_ctrl.m0/kernel_interface.kernel_cntrl arbitrationPriority {1}
-    set_connection_parameter_value pipe_stage_host_ctrl.m0/kernel_interface.kernel_cntrl baseAddress {0x4000}
-    set_connection_parameter_value pipe_stage_host_ctrl.m0/kernel_interface.kernel_cntrl defaultConnection {0}
+    add_connection pipe_stage_host_ctrl.m0 kernel_interface.ctrl avalon
+    set_connection_parameter_value pipe_stage_host_ctrl.m0/kernel_interface.ctrl arbitrationPriority {1}
+    set_connection_parameter_value pipe_stage_host_ctrl.m0/kernel_interface.ctrl baseAddress {0x4000}
+    set_connection_parameter_value pipe_stage_host_ctrl.m0/kernel_interface.ctrl defaultConnection {0}
 
     add_connection pipe_stage_host_ctrl.m0 clock_cross_aclkernelclk_to_pcie.s0 avalon
     set_connection_parameter_value pipe_stage_host_ctrl.m0/clock_cross_aclkernelclk_to_pcie.s0 arbitrationPriority {1}
