@@ -13,76 +13,32 @@ derive_clock_uncertainty
 #**************************************************************
 set_clock_groups -asynchronous \
 -group { \
-   config_clk \
+   OSC_50_B3B \
 } -group { \
-   Mem0_RefClk \
+   OSC_50_B3D \
 } -group { \
-   Mem1_RefClk \
+   OSC_50_B4A \
 } -group { \
-   kernel_pll_refclk_clk \
+   OSC_50_B4D \
+} -group { \
+   OSC_50_B7A \
+} -group { \
+   OSC_50_B7D \
+} -group { \
+   OSC_50_B8A \
+} -group { \
+   OSC_50_B8D \
 } -group { \
    pcie_refclk \
-   [get_clocks {system_inst|acl_iface|pcie|*}] \
+   [get_clocks {system_inst|tinker|pcie|*}] \
 } -group { \
-   [get_clocks {system_inst|acl_iface|acl_kernel_clk|kernel_pll|*}] \
+   [get_clocks {system_inst|tinker|acl_kernel_clk|kernel_pll|*}] \
 } -group { \
    altera_reserved_tck \
 } -group { \
-    Mem0_Ck \
-    Mem0_Ck_n \
-    Mem0_Dqs[0]_IN \
-    Mem0_Dqs[0]_OUT \
-    Mem0_Dqs[1]_IN \
-    Mem0_Dqs[1]_OUT \
-    Mem0_Dqs[2]_IN \
-    Mem0_Dqs[2]_OUT \
-    Mem0_Dqs[3]_IN \
-    Mem0_Dqs[3]_OUT \
-    Mem0_Dqs[4]_IN \
-    Mem0_Dqs[4]_OUT \
-    Mem0_Dqs[5]_IN \
-    Mem0_Dqs[5]_OUT \
-    Mem0_Dqs[6]_IN \
-    Mem0_Dqs[6]_OUT \
-    Mem0_Dqs[7]_IN \
-    Mem0_Dqs[7]_OUT \
-    Mem0_Dqs_n[0]_OUT \
-    Mem0_Dqs_n[1]_OUT \
-    Mem0_Dqs_n[2]_OUT \
-    Mem0_Dqs_n[3]_OUT \
-    Mem0_Dqs_n[4]_OUT \
-    Mem0_Dqs_n[5]_OUT \
-    Mem0_Dqs_n[6]_OUT \
-    Mem0_Dqs_n[7]_OUT \
-    [get_clocks {system_inst|acl_iface|ddr3a|*}] \
-} -group { \
-    Mem1_Ck \
-    Mem1_Ck_n \
-    Mem1_Dqs[0]_IN \
-    Mem1_Dqs[0]_OUT \
-    Mem1_Dqs[1]_IN \
-    Mem1_Dqs[1]_OUT \
-    Mem1_Dqs[2]_IN \
-    Mem1_Dqs[2]_OUT \
-    Mem1_Dqs[3]_IN \
-    Mem1_Dqs[3]_OUT \
-    Mem1_Dqs[4]_IN \
-    Mem1_Dqs[4]_OUT \
-    Mem1_Dqs[5]_IN \
-    Mem1_Dqs[5]_OUT \
-    Mem1_Dqs[6]_IN \
-    Mem1_Dqs[6]_OUT \
-    Mem1_Dqs[7]_IN \
-    Mem1_Dqs[7]_OUT \
-    Mem1_Dqs_n[0]_OUT \
-    Mem1_Dqs_n[1]_OUT \
-    Mem1_Dqs_n[2]_OUT \
-    Mem1_Dqs_n[3]_OUT \
-    Mem1_Dqs_n[4]_OUT \
-    Mem1_Dqs_n[5]_OUT \
-    Mem1_Dqs_n[6]_OUT \
-    Mem1_Dqs_n[7]_OUT \
-    [get_clocks {system_inst|acl_iface|ddr3b|*}] \
+    [get_clocks {system_inst|tinker|ddr_system|*}] \
+} -group {
+    [get_clocks {system_inst|tinker|qdr_system|*}] \
 }
 
 #**************************************************************
