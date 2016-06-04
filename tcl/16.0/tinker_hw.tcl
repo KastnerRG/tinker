@@ -165,6 +165,11 @@ proc compose { } {
     # DDR / QDR, Memory-system specific
     # Conduit name is the concatentation of system type, and id (in lower case)
     foreach sys_id $system_ids {
+	if {$sys_id == $primary_id} {
+	    add_interface acl_internal_snoop avalon_streaming source
+	    set_interface_property acl_internal_snoop EXPORT_OF system_$sys_id.acl_internal_snoop
+	}
+
 	set if_type [string tolower [dict get $mem_dict $sys_id type]]
 	foreach if_id [dict get $mem_dict $sys_id interfaces] {
 
