@@ -105,7 +105,7 @@ class Tinker():
             self.boards[version] = self.parse_boards(version)
 
     def parse_versions(self):
-        p = self.path + "boards/versions.xml"
+        p = self.path + "skels/versions.xml"
         check_path(p)
         r = et.parse(p)
         versions = []
@@ -139,7 +139,7 @@ class Tinker():
 
     def get_board_path(self,version, board):
         self.check_board(version, board)
-        p = self.path + "boards/versions.xml"
+        p = self.path + "skels/versions.xml"
         check_path(p)
         r = et.parse(p)
         e = r.find("./release/[@version='%s']" % str(version))
@@ -152,7 +152,7 @@ class Tinker():
     
     def get_board_path(self,version, board):
         self.check_version(version)
-        p = self.path + "boards/versions.xml"
+        p = self.path + "skels/versions.xml"
         check_path(p)
         r = et.parse(p)
         e = r.find("./release/[@version='%s']" % str(version))
@@ -166,7 +166,7 @@ class Tinker():
 
     def parse_boards(self, version):
         self.check_version(version)
-        p = self.path + "boards/versions.xml"
+        p = self.path + "skels/versions.xml"
         check_path(p)
         
         r = et.parse(p)
