@@ -119,8 +119,8 @@ proc compose { } {
     set_interface_property global_reset EXPORT_OF global_reset_bridge.in_reset
 
     # Memorg Conduit
-    add_interface snoop avalon_streaming source
-    set_interface_property snoop EXPORT_OF acl_memory_bank_divider.acl_bsp_snoop
+    add_interface acl_internal_snoop avalon_streaming source
+    set_interface_property acl_internal_snoop EXPORT_OF acl_memory_bank_divider.acl_bsp_snoop
 
     if {$num_memories > 1} {
 	add_interface memorg_host conduit end

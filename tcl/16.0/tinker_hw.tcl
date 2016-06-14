@@ -126,7 +126,7 @@ proc compose { } {
     set_interface_property kernel_clk EXPORT_OF kernel_clk.clk
 
     add_interface kernel_clk2x clock source
-    set_interface_property kernel_clk2x EXPORT_OF acl_kernel_clk.kernel_clk2x
+    set_interface_property kernel_clk2x EXPORT_OF tinker_kernel_clk.kernel_clk2x
 
     add_interface kernel_cra avalon master
     set_interface_property kernel_cra EXPORT_OF kernel_interface.kernel_cra
@@ -135,7 +135,7 @@ proc compose { } {
     set_interface_property kernel_irq EXPORT_OF kernel_interface.kernel_irq_from_kernel
 
     add_interface kernel_pll_refclk clock sink
-    set_interface_property kernel_pll_refclk EXPORT_OF acl_kernel_clk.pll_refclk
+    set_interface_property kernel_pll_refclk EXPORT_OF tinker_kernel_clk.pll_refclk
 
     add_interface kernel_reset reset source
     set_interface_property kernel_reset EXPORT_OF kernel_clk.clk_reset
@@ -857,7 +857,7 @@ proc compose { } {
     # Clocks and resets
     add_connection global_reset_in.out_reset por_reset_counter.clk_reset reset
 
-    add_connection config_clk.out_clk acl_kernel_clk.clk clock
+    add_connection config_clk.out_clk tinker_kernel_clk.config_clk clock
     add_connection config_clk.out_clk global_reset.clk clock
     add_connection config_clk.out_clk por_reset_counter.clk clock
     add_connection config_clk.out_clk reset_controller_global.clk clock
@@ -868,7 +868,7 @@ proc compose { } {
 
     add_connection reset_controller_global.reset_out global_reset.in_reset reset
 
-    add_connection global_reset.out_reset acl_kernel_clk.reset reset
+    add_connection global_reset.out_reset tinker_kernel_clk.reset reset
     add_connection global_reset.out_reset clock_cross_aclkernelclk_to_pcie.m0_reset reset
     foreach sys_id $system_ids {
 	add_connection global_reset.out_reset system_$sys_id.global_reset reset
@@ -914,14 +914,14 @@ proc compose { } {
 
     add_connection temperature_pll.outclk0 temperature_0.clk clock
 
-    add_connection acl_kernel_clk.kernel_clk clock_cross_kernel_irq.receiver_clk clock
-    add_connection acl_kernel_clk.kernel_clk kernel_clk.clk_in clock
-    add_connection acl_kernel_clk.kernel_clk kernel_interface.kernel_clk clock
+    add_connection tinker_kernel_clk.kernel_clk clock_cross_kernel_irq.receiver_clk clock
+    add_connection tinker_kernel_clk.kernel_clk kernel_clk.clk_in clock
+    add_connection tinker_kernel_clk.kernel_clk kernel_interface.kernel_clk clock
 
     foreach sys_id $system_ids {
-	add_connection acl_kernel_clk.kernel_clk system_$sys_id.kernel_clk clock
+	add_connection tinker_kernel_clk.kernel_clk system_$sys_id.kernel_clk clock
     }
-    #add_connection acl_kernel_clk.kernel_clk system_1.kernel_clk clock
+    #add_connection tinker_kernel_clk.kernel_clk system_1.kernel_clk clock
 
     add_connection kernel_interface.kernel_reset kernel_clk.clk_in_reset reset
     add_connection kernel_interface.kernel_reset clock_cross_kernel_irq.receiver_clk_reset reset
@@ -987,10 +987,10 @@ proc compose { } {
     set_connection_parameter_value pipe_stage_host_ctrl.m0/clock_cross_aclkernelclk_to_pcie.s0 baseAddress {0xc000}
     set_connection_parameter_value pipe_stage_host_ctrl.m0/clock_cross_aclkernelclk_to_pcie.s0 defaultConnection {0}
 
-    add_connection clock_cross_aclkernelclk_to_pcie.m0 acl_kernel_clk.ctrl avalon
-    set_connection_parameter_value clock_cross_aclkernelclk_to_pcie.m0/acl_kernel_clk.ctrl arbitrationPriority {1}
-    set_connection_parameter_value clock_cross_aclkernelclk_to_pcie.m0/acl_kernel_clk.ctrl baseAddress {0x0000}
-    set_connection_parameter_value clock_cross_aclkernelclk_to_pcie.m0/acl_kernel_clk.ctrl defaultConnection {0}
+    add_connection clock_cross_aclkernelclk_to_pcie.m0 tinker_kernel_clk.ctrl avalon
+    set_connection_parameter_value clock_cross_aclkernelclk_to_pcie.m0/tinker_kernel_clk.ctrl arbitrationPriority {1}
+    set_connection_parameter_value clock_cross_aclkernelclk_to_pcie.m0/tinker_kernel_clk.ctrl baseAddress {0x0000}
+    set_connection_parameter_value clock_cross_aclkernelclk_to_pcie.m0/tinker_kernel_clk.ctrl defaultConnection {0}
 
     add_connection pipe_stage_host_ctrl.m0 clock_cross_dmacsr_to_pcie.s0 avalon
     set_connection_parameter_value pipe_stage_host_ctrl.m0/clock_cross_dmacsr_to_pcie.s0 arbitrationPriority {1}
