@@ -107,14 +107,29 @@ class Board():
         base = 0
         size_default = 0
         for sys in s["Systems"]:
+            # TODO: Set default burst and document
+            if("Burst" not in s[sys]):
+                s[sys]["Burst"] = 16
             t = s[sys]["Type"]
             m = self.types[t]
+            sz = 0
+            for i in s[sys]["Interfaces"]:
+                sz += int(s[sys][i]["Size"],16)
+
+            # Update Base. Base address must be size-aligned.
+            if((base % sz) is not 0):
+                base += (sz - (base % sz))
+
+            # Round the base address to the nearest multiple of the interface size.
             e = m.build_spec(spec,sys,base,specification=specification)
             r.append(e)
-            for i in s[sys]["Interfaces"]:
-                base += int(s[sys][i]["Size"],16)
-                if(sys == "0"):
-                    size_default += int(s[sys][i]["Size"],16)
+
+            base += sz
+            if(sys == "0"):
+                log_sz = int(math.log(sz)/math.log(2))
+                b = int(s["0"]["Burst"])
+                lb = int(math.log(b)/math.log(2))
+                print log_sz, b, lb
 
         # ACL Plumbing
         intfs = ET.SubElement(r, "interfaces")
@@ -138,7 +153,7 @@ class Board():
                                       "type":"streamsource",
                                       "enable":"SNOOPENABLE",
                                       "clock":"tinker.kernel_clk",
-                                      "width":str(int(math.log(size_default)/math.log(2)))})
+                                      "width":str(log_sz + lb - 3)})
         kclk_rst = ET.SubElement(intfs,"kernel_clk_reset",
                                  attrib={"clk":"tinker.kernel_clk",
                                          "clk2x":"tinker.kernel_clk2x",

@@ -87,7 +87,8 @@ class Memory(IP.IP):
     def build_spec(self,spec, n, base, specification=False):
         s = spec.get_info()
         r = ET.Element("global_mem", attrib={"name": self.info["type"] + "_" + str(n)})
-        burst = s.get("Burst","16")
+
+        burst = s[n].get("Burst","16")
         
         if0 = s[n]["Interfaces"][0]
         width = int(1/(Tinker.ratio2float(s[n]["Ratio"])) * self.info[if0]["pow2_dq_pins"] * self.info[if0]["clock_ratio"])
