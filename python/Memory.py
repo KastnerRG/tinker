@@ -69,7 +69,8 @@ class Memory(IP.IP):
         d["type"] = t
         d["enumeration"] = r.get("enum")
         d["division"] = r.get("division")
-        d["burst"] = r.get("burst") # TODO
+        # Burst is an overloaded term. Burst-4 QDR gets 4 consecutive addresses on one access.
+        d["burst"] = r.get("burst")
         # TODO: List diff for enum
         if(d["division"] == "discrete"):
             d["quantity"] = r.get("quantity")

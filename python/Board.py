@@ -77,6 +77,7 @@ class Board():
         return d
 
     def build_spec(self, spec, version, specification=False):
+  
         s = spec.get_info()
         # TODO: Why does version = 14.1 fail?
         # TODO: Check Version
@@ -87,6 +88,25 @@ class Board():
         if(specification):
             r.set("file", self.info["name"]+".xml")
 
+        # Compile Directives
+        #  <compile project="top" revision="top" qsys_file="system.qsys" generic_kernel="1">
+        #    <generate cmd="qsys-generate --synthesis=VERILOG system.qsys"/>
+        #    <synthesize cmd="quartus_sh --flow compile top -c top"/>
+        #    <auto_migrate platform_type="auto" >
+        #      <include fixes=""/>
+        #      <exclude fixes=""/>
+        #    </auto_migrate>
+        #  </compile>
+        c = ET.SubElement(r,"compile", attrib={"project":"top",
+                                           "revision":"top",
+                                           "qsys_file":"system.qsys",
+                                           "generic_kernel":"1"})
+        ET.SubElement(c,"generate", attrib={"cmd":"qsys-generate --synthesis=VERILOG system.qsys"})
+        ET.SubElement(c,"synthesis", attrib={"cmd":"quartus_sh --flow compile top -c top"})
+        am = ET.SubElement(c,"auto_migrate", attrib={"platform_type":"auto"})
+        ET.SubElement(am,"include", attrib={"fixes":""})
+        ET.SubElement(am,"exclude", attrib={"fixes":""})
+                                                  
         # Summary of Resources
         resources = Counter({"alms":0,
                              "ffs":0,
@@ -108,6 +128,7 @@ class Board():
         size_default = 0
         for sys in s["Systems"]:
             # TODO: Set default burst and document
+            # This is pretty ugly. We should check and set defaults when we first parse the specification.
             if("Burst" not in s[sys]):
                 s[sys]["Burst"] = 16
             t = s[sys]["Type"]
@@ -126,10 +147,18 @@ class Board():
 
             base += sz
             if(sys == "0"):
+                 # TODO: God this is ugly. But it's seemingly the only way to calculate the width cleanly (unless we do it in the specification step)
                 log_sz = int(math.log(sz)/math.log(2))
                 b = int(s["0"]["Burst"])
-                lb = int(math.log(b)/math.log(2))
-                print log_sz, b, lb
+                burstw = int(math.log(b)/math.log(2)) + 1
+                m_if0 = s["0"]["Interfaces"][0]
+
+                m_info = m.get_info()
+                m_width = int(1/(Tinker.ratio2float(s["0"]["Ratio"])) * m_info[m_if0]["dq_pins"] * m_info[m_if0]["clock_ratio"])
+                m_bytes = m_width/8
+                log_b = int(math.log(m_bytes)/math.log(2))
+
+                #print log_sz, b, burstw
 
         # ACL Plumbing
         intfs = ET.SubElement(r, "interfaces")
@@ -153,7 +182,7 @@ class Board():
                                       "type":"streamsource",
                                       "enable":"SNOOPENABLE",
                                       "clock":"tinker.kernel_clk",
-                                      "width":str(log_sz + lb - 3)})
+                                      "width":str(log_sz - log_b  + burstw + 1)})
         kclk_rst = ET.SubElement(intfs,"kernel_clk_reset",
                                  attrib={"clk":"tinker.kernel_clk",
                                          "clk2x":"tinker.kernel_clk2x",
