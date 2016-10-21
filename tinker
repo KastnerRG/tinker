@@ -40,7 +40,7 @@
 # Author: Dustin Richmond
 
 # Import Python Utilities
-import os, shutil, xml.etree.ElementTree as et, argparse as ap
+import os, shutil, xml.etree.ElementTree as et, argparse as ap, sys as System
 from xml.dom import minidom
 # Import Tinker Objects
 import Tinker, Board, Specification
@@ -83,15 +83,14 @@ def main():
 
     if(args.list_boards):
         list_boards(tinker)
+        
     elif(args.get_board_info):
         version = args.get_board_info[0]
         board = args.get_board_info[1]
-        tinker.check_board(version,board)
+        tinker.check_board(version, board)
         
-        b = Board.Board(tinker.get_board_xml(version, board))
-        d = b.get_info()
-        print "Getting Info for Board %s, Version %s" % (board, version)
-        b.print_info(0)
+        print "Getting Info for Version: %s, Board: %s" % (version, board)
+        Board.Board(version, board).print_info(0)
         
     elif(args.generate):
         path = args.generate[0]
@@ -99,18 +98,20 @@ def main():
         board = args.generate[2]
         tinker.check_board(version, board)
         
-        src_path = tinker.get_board_path(version, board)
-        b = Board.Board(tinker.get_board_xml(version,board))
         s = Specification.Specification(path)
+        b = Board.Board(version, board)
         
         board_name = board + "_" + s.get_info()["Name"]
         outdir_path = "./" + board_name + "/"
+
+        # TODO: Just warn & exit if directory exists
+        src_path = tinker.get_board_path(version, board)
         try:
-            shutil.rmtree(outdir_path)
-        except:
-            pass
-        
-        shutil.copytree(src_path, outdir_path)
+            shutil.copytree(src_path, outdir_path)
+        except OSError:
+            System.exit("Error: Board Output Directory %s Exists!" % outdir_path);
+
+        # TODO: remove get_board_path call?
         
         # Build Board Specification and Board Spec files
         specification = b.build_spec(s, version, specification=True)

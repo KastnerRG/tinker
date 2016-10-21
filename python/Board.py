@@ -45,7 +45,8 @@ from collections import defaultdict, Counter
 import Memory, Tinker
 
 class Board():
-    def __init__(self, xml):
+    def __init__(self, version, board):
+        xml = Tinker.Tinker().get_board_xml(version, board)
         Tinker.check_path(xml)
         self.types = {}
         self.info = self.parse_info(ET.parse(xml)) 
@@ -62,16 +63,15 @@ class Board():
         d = defaultdict();
         r = xml.getroot()
         d["version"] = r.get("version")
-        n = r.get("name")
-        d["name"] = n
-        d["types"] = []
+        d["name"] = r.get("name")
         d["model"] = r.get("model")
+        d["types"] = []
 
         for e in r.findall("./memory/[@type]"):
             mem = Memory.Memory(e);
             dm = mem.get_info()
-            d[dm["type"]] = dm
             d["types"].append(dm["type"])
+            d[dm["type"]] = dm
             self.types[dm["type"]] = mem
                         
         return d
@@ -79,8 +79,6 @@ class Board():
     def build_spec(self, spec, version, specification=False):
   
         s = spec.get_info()
-        # TODO: Why does version = 14.1 fail?
-        # TODO: Check Version
         if(version == "14.1" and not specification):
             r = ET.Element("board", attrib={"version": "0.9", "name":self.info["name"] + "_" + s["Name"]})
         else:
