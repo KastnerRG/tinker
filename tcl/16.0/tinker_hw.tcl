@@ -1056,7 +1056,7 @@ proc compose { } {
     # Memorg connections
     foreach sys_id $system_ids {
 	set config_addr [dict get $mem_dict $sys_id config_addr]
-	set quantity [dict get $mem_dict $sys_id interfaces]
+	set quantity [llength [dict get $mem_dict $sys_id interfaces]]
 	# handles odd requirement Dictated by Altera OpenCL
 	if {$quantity > 1} {
 	    add_connection kernel_interface.acl_bsp_memorg_host$config_addr system_$sys_id.memorg_host conduit
