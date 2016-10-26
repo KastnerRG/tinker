@@ -77,8 +77,8 @@ class Board():
         return d
 
     def build_spec(self, spec, version, specification=False):
-  
         s = spec.get_info()
+        
         if(version == "14.1" and not specification):
             r = ET.Element("board", attrib={"version": "0.9", "name":self.info["name"] + "_" + s["Name"]})
         else:
@@ -100,7 +100,7 @@ class Board():
                                            "qsys_file":"system.qsys",
                                            "generic_kernel":"1"})
         ET.SubElement(c,"generate", attrib={"cmd":"qsys-generate --synthesis=VERILOG system.qsys"})
-        ET.SubElement(c,"synthesis", attrib={"cmd":"quartus_sh --flow compile top -c top"})
+        ET.SubElement(c,"synthesize", attrib={"cmd":"quartus_sh --flow compile top -c top"})
         am = ET.SubElement(c,"auto_migrate", attrib={"platform_type":"auto"})
         ET.SubElement(am,"include", attrib={"fixes":""})
         ET.SubElement(am,"exclude", attrib={"fixes":""})
