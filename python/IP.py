@@ -43,8 +43,9 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 from Resources import Resources
 import abc
+import Tinker
 
-class IP(defaultdict):
+class IP(dict):
     def __init__(self, e):
         """
         Construct a generic IP object that encapsulates a dictionary
@@ -73,8 +74,8 @@ class IP(defaultdict):
         
         """
 
-    @abc.abstractmethod
-    def validate(self, d):
+    @classmethod
+    def validate(cls, d):
         """
 
         Validate the parameters that describe the intrinsic settings of
@@ -124,3 +125,52 @@ def construct(cls, e):
     import Memory
     return Memory.Memory(e)
     
+def parse_string(e, k):
+    s = e.get(k)
+    if(s is None):
+        Tinker.key_error(k, ET.tostring(e))
+    elif(not Tinker.is_string(s)):
+        Tinker.value_error_xml(k, s, "Strings", ET.tostring(e))
+    return s
+
+def parse_float(e, key):
+    s = parse_string(e, key)
+    try:
+        return float(s)
+    except ValueError:
+        Tinker.value_error_xml(ks, s, "Real Numbers", ET.tostring(e))
+
+def parse_int(e, key):
+    s = parse_string(e, key)
+    try:
+        return int(s)
+    except ValueError:
+        Tinker.value_error_xml(ks, s, "Integers", ET.tostring(e))
+
+def parse_list_from_string(s):
+    return [e.strip() for e in s.split(",")]
+        
+def parse_list(e, key):
+    s = parse_string(e, key)
+    return [e.strip() for e in s.split(",")]
+        
+def parse_id(e):
+    id = parse_string(e, "id")
+    if(not Tinker.is_alphachar(id)):
+        value_error_xml("id", id, "Alphanumeric Characters", ET.tostring(e))
+    return id
+
+def parse_ids(e):
+    ids = parse_list(e,"ids")
+    for id in ids:
+        if(not Tinker.is_alphachar(id)):
+            value_error_xml("ids", id, "Alphanumeric Characters", ET.tostring(e))
+    return ids
+
+def parse_macros(e):
+    macros = parse_list(e, "macros")
+    for m in macros:
+        if(not Tinker.is_valid_verilog_name(m)):
+            Tinker.value_error_xml("macros", m, "Valid Verilog Names",
+                                   ET.tostring(e))
+    return macros

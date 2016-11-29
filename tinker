@@ -104,8 +104,8 @@ def main():
         s = Description.Description(path)
         print json.dumps(s,indent=2)
         b = Board.Board(version, board)
+        print json.dumps(b,indent=2)
         exit(1)
-        print b
         
         board_name = board + "_" + s.get_info()["Name"]
         outdir_path = "./" + board_name + "/"

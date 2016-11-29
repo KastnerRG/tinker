@@ -39,7 +39,7 @@
 # Author: Dustin Richmond
 import xml.etree.ElementTree as ET
 import Tinker, Phy
-
+from IP import parse_int
 class DDR(Phy.Phy):
     _C_BURST_WIDTHS = range(1,5)
     _C_BURST_DEFAULT = 4
@@ -49,7 +49,8 @@ class DDR(Phy.Phy):
     def __init__(self, e):
         super(DDR,self).__init__(e)
 
-    def validate(self, d):
+    @classmethod
+    def validate(cls, d):
         """
 
         Validate the parameters that describe the intrinsic settings of
@@ -61,10 +62,11 @@ class DDR(Phy.Phy):
         of a custom board
         
         """
-        Phy.check_size(d["size"])
+        d = super(DDR,cls).validate(d)
         return
 
-    def parse(self,e):
+    @classmethod
+    def parse(cls,e):
         """
         Parse the description of this IP object from an element tree
         element and return a defaultdictionary with the parameters
@@ -76,17 +78,16 @@ class DDR(Phy.Phy):
         object
         
         """
-        d = super(DDR,self).parse(e)
+        d = super(DDR,cls).parse(e)
         pow2_dq_pins = d["pow2_dq_pins"]
 
-        bank_pins = Tinker.parse_int(e, "bank_pins", ET.tostring)
-        column_pins = Tinker.parse_int(e, "column_pins", ET.tostring)
-        row_pins = Tinker.parse_int(e, "row_pins", ET.tostring)
+        bank_pins = parse_int(e, "bank_pins")
+        column_pins = parse_int(e, "column_pins")
+        row_pins = parse_int(e, "row_pins")
 
         size = pow2_dq_pins/8 * (2**bank_pins) * (2 ** column_pins) * (2 ** row_pins)
         d["size"] = int(size)
 
-        self.validate(d)
         return d
 
     def get_interface(self, sid, verbose=False):

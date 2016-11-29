@@ -42,14 +42,21 @@
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 # Import Tinker Objects
-import Tinker, IP
+import Tinker, Memory
 import abc, sys
-
-class Phy(IP.IP):
+from IP import parse_list, parse_string, parse_int, parse_id, parse_float, parse_macros, IP
+from Memory import Memory, parse_ratios, parse_ports, parse_roles, parse_grouping
+class Phy(IP):
     _C_BURST_WIDTHS = [] # TODO: Burst widths should be power of 2
     _C_BURST_DEFAULT = 0 # TODO: Burst widths should be power of 2
     _C_CLOCK_RATIOS = [] 
     _C_MAX_DATA_BUS_WIDTH = 2048
+    _C_FMAX_MHZ_RANGE = (1,2000)
+    _C_FREF_MHZ_RANGE = (1,500)
+    _C_DQ_PIN_RANGE = (0,128)
+    _C_POW2_DQ_PIN_RANGE = (0,128)
+    _C_BANDWIDTH_BS_RANGE= (0,1<<32)
+    _C_SIZE_RANGE= (0,1<<32)
     
     def __init__(self, e):
         super(Phy,self).__init__(e)
@@ -67,22 +74,23 @@ class Phy(IP.IP):
         of a custom board
         
         """
-        check_frequency(d["fmax_mhz"])
-        check_frequency(d["fref_mhz"])
-        check_dq_pins(d["dq_pins"])
-        check_pow_2_dq_pins(d["pow2_dq_pins"])
-        check_bandwidth_bs(d["bandwidth_bs"])
+        cls.check_size(d)
+        cls.check_frequency(d)
+        cls.check_dq_pins(d)
+        cls.check_pow_2_dq_pins(d)
+        cls.check_bandwidth_bs(d)
 
         return
         
-    def parse(self,e):
+    @classmethod
+    def parse(cls,e):
         d = {}
 
         id = parse_id(e)
-        fref_mhz = Tinker.parse_float(e, "fref_mhz", ET.tostring)
-        fmax_mhz = Tinker.parse_float(e, "fmax_mhz", ET.tostring)
-        dq_pins = Tinker.parse_int(e, "dq_pins", ET.tostring)
-        macros = Tinker.parse_macros(e, ET.tostring)
+        fref_mhz = parse_float(e, "fref_mhz")
+        fmax_mhz = parse_float(e, "fmax_mhz")
+        dq_pins = parse_int(e, "dq_pins")
+        macros = parse_macros(e)
 
         d["id"] = id
         d["fmax_mhz"] = fref_mhz
@@ -105,9 +113,8 @@ class Phy(IP.IP):
 
         pow2_dq_pins = int(2 ** Tinker.clog2(dq_pins))
         d["pow2_dq_pins"] = pow2_dq_pins
-        d["bandwidth_bs"] = int((d["fmax_mhz"] * 10**6 * self._C_RATE * pow2_dq_pins) / 8)
+        d["bandwidth_bs"] = int((d["fmax_mhz"] * 10**6 * cls._C_RATE * pow2_dq_pins) / 8)
 
-        Phy.validate(d)
         return d
 
     def configure(self, d):
@@ -168,16 +175,15 @@ class Phy(IP.IP):
         
         """
         # TODO: Check should take the dictionary.
-        # TODO: Tinker.key_error
         # These should be passed in from the system..
-        self.check_base_address(d.get("base_addr"));
-        self.check_oct_pin(d.get("oct_pin"))
-        self.check_role(d.get("role"))
+        self.check_base_address(d);
+        self.check_oct_pin(d)
+        self.check_role(d)
 
         # Truly optional defaults
-        self.check_ratio(d.get("ratio"))
-        self.check_data_bus_width(d.get("width"));
-        self.check_max_burst(d.get("maxburst"))
+        self.check_ratio(d)
+        self.check_data_bus_width(d);
+        self.check_max_burst(d)
         return d
 
     def get_interface(self, id, verbose=False):
@@ -225,111 +231,165 @@ class Phy(IP.IP):
             return "Half"
         return "Full"
 
-    def check_ratio(ratio):
+    @classmethod
+    def check_ratio(cls, d):
+        ratio = d.get("ratio")
         if(ratio is None):
-            sys.exit("Ratio cannot be unspecified in configuration")
-        if(ratio not in self._C_CLOCK_RATIOS):
-            sys.exit("Invalid Ratio %s Specified for Phy" % ratio)
+            Tinker.key_error("ratio", Tinker.tostr_dict(d))
+        if(ratio not in cls._C_CLOCK_RATIOS):
+            Tinker.value_error_xml("ratio", ratio, str(list(cls._C_CLOCK_RATIOS)),
+                                   Tinker.tostr_dict(d))
 
-    def check_role(role):
+    # TODO: Why are these objectmethods?
+    def check_role(self, d):
+        role = d.get("role")
         if(role is None):
-            sys.exit("Role cannot be unspecified in configuration")
+            Tinker.key_error("role", Tinker.tostr_dict(d))
         if(role not in self["roles"]):
-            sys.exit("Invalid Role %s Specified for Phy" % role)
+            Tinker.value_error_map("role", role, self["roles"],
+                                   Tinker.tostr_dict(d))
 
-    def check_base_address(self, base):
+    # TODO: Why are these objectmethods?
+    def check_oct_pin(self, d):
+        oct_pin = d.get("oct_pin")
+        if(oct_pin is None):
+            Tinker.key_error("oct_pin", Tinker.tostr_dict(d))
+        if(oct_pin not in self["oct_pins"]):
+            Tinker.value_error_map("oct_pin", role, self["oct_pins"],
+                                   Tinker.tostr_dict(d))
+
+    # TODO: Why are these objectmethods? Should they be called validate?
+    def check_base_address(self, d):
+        self.check_size(d)
+        sz = self["size"]
+        base = d.get("base_address")
         if(base is None):
-            sys.exit("Base address cannot be unspecified in configuration")
-        if(not Tinker.is_in_range(base, 0, (2 ** 64) - self["size"])):
-            sys.exit("Invalid Base Address %x Specified for Phy" % base)
-        
-    def check_data_bus_width(width):
-        if(width is None):
-            sys.exit("Data-Bus width cannot be unspecified in configuration")
-        if(not Tinker.is_pow_2(width)):
-            sys.exit("Invalid Non-power-of-2 Bus-Width %x Specified for Phy" % width)
-        if(width % self["pow2_dq_width"] != 0):
-            sys.exit("Bus-width %x must be a multiple of the POW2 DQ Pins in Phy" % width)
-        if(not Tinker.is_in_range(width, 0, self._C_MAX_DATA_BUS_WIDTH)):
-            sys.exit("Invalid Bus-Width %x Specified for Phy" % width)
-
-    def check_max_burst(burst):
-        if(burst is None):
-            sys.exit("Burst cannot be unspecified in configuration")
-        if(not Tinker.is_pow_2(burst)):
-            sys.exit("Invalid Max-Burst paramter %x Specified for Phy" % burst)
-        if(burst not in self._C_BURST_WIDTHS):
-            sys.exit("Invalid Max-Burst parameter %x Specified for Phy" % burst)
-
-def check_frequency(f_hz):
-    if(not Tinker.is_in_range(f_hz, 0, 10**9)):
-        sys.exit("Invalid Frequency %f Specified for Phy" % f_hz)
-
-def check_dq_pins(p):
-    if(not Tinker.is_in_range(p, 0, 128)):
-        sys.exit("Invalid Number of DQ (Data) Pins %d Specified for Phy" % p)
-        
-def check_pow_2_dq_pins(p):
-    if(not Tinker.is_in_range(p, 0, 128)):
-        sys.exit("Invalid Power-of-2 DQ (Data) Pins %d Specified for Phy" % p)
-    if(not Tinker.is_pow_2(p)):
-        sys.exit("Invalid Power-of-2 DQ (Data) Pins %d is not a power of 2" % p)
-
-def check_bandwidth_bs(s):
-    if(not Tinker.is_in_range(s,0,1<<32)):
-        sys.exit("Invalid Size %s Specified for Phy" % s)
-
-def check_size(s):
-    if(not Tinker.is_in_range(s,0,1<<32)):
-        sys.exit("Invalid Size %s Specified for Phy" % s)
-    if(not Tinker.is_pow_2(s)):
-        sys.exit("Invalid Non-power-of-2 Size %s Specified for Phy" % s)
-
-def parse_roles(e):
-    roles = ["primary", "secondary","independent"]
-    s = Tinker.parse_string(e,"roles", ET.tostring)
-    mem_roles = Tinker.parse_list_from_string(s)
-    for mr in mem_roles:
-        if(mr not in roles):
-            sys.exit("Invalid role \"%s\" found in roles attribute:\n  %s" % (mr, ET.tostring(e)))
-    return mem_roles
+            Tinker.key_error("base_address", Tinker.tostr_dict(d))
+        if(not Tinker.is_in_range(base, 0, (2 ** 64) - sz)):
+            Tinker.value_error_map("base_address", str(base),
+                                   "Range(%x, %x)" % (0, (2**64) - sz),
+                                   Tinker.tostr_dict(d))
+        if((base % sz) != 0):
+            Tinker.value_error_map("base_address", str(base),
+                                   "Multiples of %x (Size)" % sz,
+                                   Tinker.tostr_dict(d))
     
-def parse_grouping(e):
-    s = Tinker.parse_string(e, "grouping", ET.tostring)
-    ids = Tinker.parse_list_from_string(s)
-    for id in ids:
-        if(not Tinker.is_alphachar(id)):
-            sys.exit("Invalid grouping id \"%s\" found in attribute:\n%s" % (id,ET.tostring(e)))
-    return ids
+    @classmethod
+    def check_data_bus_width(cls, d):
+        check_pow_2_dq_pins(d)
+        p2dqp = d["pow2_dq_pins"]
+        width = d.get("width")
+        if(width is None):
+            Tinker.key_error("width", Tinker.tostr_dict(d))
+        if(not Tinker.is_pow_2(width)):
+            Tinker.value_error_map("width", str(width),
+                                   "Integer powers of 2",
+                                   Tinker.tostr_dict(d))
+        if(width % p2dqp != 0):
+            Tinker.value_error_map("width", str(width),
+                                   "Multiple of %x (Pow2 DQ Width)" % p2dqp,
+                                   Tinker.tostr_dict(d))
+        if(not Tinker.is_in_range(width, 0, cls._C_MAX_DATA_BUS_WIDTH)):
+            Tinker.value_error_map("width", str(width),
+                                   str(list(cls._C_MAX_DATA_BUS_WIDTH)),
+                                   Tinker.tostr_dict(d))
+    @classmethod
+    def check_max_burst(cls, d):
+        burst = d.get("maxburst")
+        if(burst is None):
+            Tinker.key_error("maxburst", Tinker.tostr_dict(d))
+        if(not Tinker.is_pow_2(burst)):
+            Tinker.value_error_map("maxburst", str(burst),
+                                   "Integer powers of 2",
+                                   Tinker.tostr_dict(d))
+        if(burst not in cls._C_BURST_WIDTHS):
+            Tinker.value_error_map("maxburst", str(burst),
+                                   str(list(cls._C_BURST_WIDTHS)),
+                                   Tinker.tostr_dict(d))
 
-def parse_ports(e):
-    ports = ["r", "w", "rw"]
-    s = Tinker.parse_string(e,"ports", ET.tostring)
-    mem_ports = Tinker.parse_list_from_string(s)
-    for mp in mem_ports:
-        if(mp not in ports):
-            sys.exit("Invalid port \"%s\" found in ports attribute:\n  %s" % (mp, ET.tostring(e)))
-    return mem_ports
+    @classmethod
+    def check_frequency(cls, d):
+        fmax = d.get("fmax_mhz")
+        fmax_min = cls._C_FMAX_MHZ_RANGE[0]
+        fmax_max = cls._C_FMAX_MHZ_RANGE[1]
+        if(fmax is None):
+            Tinker.key_error("fmax_mhz", Tinker.tostr_dict(d))
+        if(not Tinker.is_in_range(fmax, fmax_min, fmax_max)):
+            Tinker.value_error_map("fmax_mhz", str(fmax),
+                                   "Range(%x, %x)" % (fmax_min, fmax_max),
+                                   Tinker.tostr_dict(d))
+    
+        fref = d.get("fref_mhz")
+        fref_min = cls._C_FREF_MHZ_RANGE[0]
+        fref_max = cls._C_FREF_MHZ_RANGE[1]
+        if(fref is None):
+            Tinker.key_error("fref_mhz", Tinker.tostr_dict(d))
+        if(not Tinker.is_in_range(fref, fref_min, fref_max)):
+            Tinker.value_error_map("fref_mhz", str(fref),
+                                   "Range(%x, %x)" % (fref_min, fref_max),
+                                   Tinker.tostr_dict(d))
 
-def parse_ratios(e):
-    ratios = ["Quarter", "Half","Full"]
-    s = Tinker.parse_string(e, "ratios", ET.tostring)
-    mem_ratios = Tinker.parse_list_from_string(s)
-    for mr in mem_ratios:
-        if(mr not in ratios):
-            sys.exit("Invalid ratio \"%s\" found in ratios attribute:\n  %s" % (mr, ET.tostring(e)))
-    return mem_ratios
+    @classmethod
+    def check_dq_pins(cls, d):
+        p = d.get("dq_pins")
+        dq_min = cls._C_DQ_PIN_RANGE[0]
+        dq_max = cls._C_DQ_PIN_RANGE[1]
+        if(p is None):
+            Tinker.key_error("dq_pins", Tinker.tostr_dict(d))
+        if(not Tinker.is_in_range(p, dq_min, dq_max)):
+            Tinker.value_error_map("dq_pins", str(p),
+                                   "Range(%x, %x)" % (dq_min, dq_max),
+                                   Tinker.tostr_dict(d))
+    @classmethod
+    def check_pow_2_dq_pins(cls, d):
+        p = d.get("pow2_dq_pins")
+        pdq_min = cls._C_POW2_DQ_PIN_RANGE[0]
+        pdq_max = cls._C_POW2_DQ_PIN_RANGE[1]
+        if(p is None):
+            Tinker.key_error("pow2_dq_pins", Tinker.tostr_dict(d))
+        if(not Tinker.is_in_range(p, pdq_min, pdq_max)):
+            Tinker.value_error_map("pow2_dq_pins", str(p),
+                                   "Range(%x, %x)" % (pdq_min, pdq_max),
+                                   Tinker.tostr_dict(d))
+        if(not Tinker.is_pow_2(p)):
+            Tinker.value_error_map("pow2_dq_pins", str(p),
+                                   "Integer powers of 2",
+                                   Tinker.tostr_dict(d))
 
+    @classmethod
+    def check_bandwidth_bs(cls, d):
+        bw = d.get("bandwidth_bs")
+        bw_min = cls._C_BANDWIDTH_BS_RANGE[0]
+        bw_max = cls._C_BANDWIDTH_BS_RANGE[1]
+        if(bw is None):
+            Tinker.key_error("bandwidth_bs", Tinker.tostr_dict(d))
+        if(not Tinker.is_in_range(bw,0,1<<32)):
+            Tinker.value_error_map("bandwidth_bs", str(bw),
+                                   "Range(%x, %x)" % (bw_min, bw_max),
+                                   Tinker.tostr_dict(d))
+
+    @classmethod
+    def check_size(cls, d):
+        sz = d.get("size")
+        sz_min = cls._C_SIZE_RANGE[0]
+        sz_max = cls._C_SIZE_RANGE[1]
+        if(sz is None):
+            Tinker.key_error("size", Tinker.tostr_dict(d))
+        if(not Tinker.is_in_range(sz, sz_min, sz_max)):
+            Tinker.value_error_map("size", str(sz),
+                                   "Range(%x, %x)" % (sz_min, sz_max),
+                                    Tinker.tostr_dict(d))
+        if(not Tinker.is_pow_2(sz)):
+            Tinker.value_error_map("pow2_dq_pins", str(sz),
+                                   "Integer powers of 2",
+                                   Tinker.tostr_dict(d))
+    
 def parse_oct_pins(e):
-    s = Tinker.parse_string(e, "oct_pins", ET.tostring)
-    pins = Tinker.parse_list_from_string(s)
+    pins = parse_list(e, "oct_pins")
     for p in pins:
         if(not Tinker.is_valid_verilog_name(p)):
-            sys.exit("Invalid OCT pin \"%s\" found in oct_pins attribute:\n  %s" % (p, ET.tostring(e)))
+            Tinker.value_error_xml("oct_pins", p, "Valid Verilog Names",
+                                   ET.tostring(e))
     return pins
 
-def parse_id(e):
-    id = Tinker.parse_string(e, "id", ET.tostring)
-    if(not Tinker.is_alphachar(id)):
-        sys.exit("Invalid ID \"%s\" found in id attribute:\n %s" % (id, ET.tostring(e)))
-    return id
+

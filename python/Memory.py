@@ -42,10 +42,12 @@
 import xml.etree.ElementTree as ET, math
 from collections import defaultdict
 # Import Tinker Objects
-import IP, Tinker
+import Tinker
 import abc, sys
+from IP import parse_list, parse_string, IP, parse_id, parse_ids
 
-class Memory(IP.IP):
+class Memory(IP):
+    _C_KNOWN_TYPES = set(["DDR3", "QDRII", "LOCAL"])
     def __init__(self, e):
         """
 
@@ -73,7 +75,10 @@ class Memory(IP.IP):
         of a custom board
         
         """
-        return
+        super(Memory,cls).validate(d)
+        # TODO: A lot more work needs to be done on validation of the board
+        # dictionary
+        pass
         
     @abc.abstractmethod
     def fill(cls, d):
@@ -113,37 +118,38 @@ class Memory(IP.IP):
     def get_macros(self,s):
         pass
 
-    def parse(self,e):
-        d = defaultdict()
+
+    @classmethod
+    def parse(cls,e):
+        d = dict()
         d["type"] = "memory"
-        ts = parse_types(e)
+        ts = cls.parse_types(e)
         for se in e.findall("./*"):
             t = se.tag
             if(t not in ts):
-                sys.exit("Memory Type \"%s\" from subelement tag not found in types attribute of parent element:\n %s"
-                         % (t, ET.tostring(e)))                
-            td = self.parse_type(t,se)
-            self.validate_type(td)
+                Tinker.key_error(t, ET.tostring(e))
+            td = cls.parse_type(t,se)
             d[t] = td
-        self.validate(d)
+        d["types"] = ts
         return d
     
-    def parse_type(self,t,e):
-        d = defaultdict()
+    @classmethod
+    def parse_type(cls,t,e):
+        d = dict()
         ids = parse_ids(e)
         ides = e.findall("phy")
         for ide in ides:
-            pd = self.construct(t, ide)
+            pd = cls.construct(t, ide)
             id = pd["id"]
             if(id not in ids):
-                sys.exit("Unknown ID \"%s\" found while parsing element:\n %s"
-                         % (id, ET.tostring(ide)))
+                Tinker.value_error_xml("id", id, str(ids), ET.tostring(ide))
             d[id] = pd
         default = parse_default(e)
         d["default"] = default
         return d
-    
-    def validate_type(self,d):
+
+    @classmethod
+    def validate_type(cls,d):
         check_default(d)
 
     @classmethod
@@ -157,26 +163,55 @@ class Memory(IP.IP):
         elif(t == "LOCAL"):
             import LOCAL
             return LOCAL.LOCAL(e)
-
-def parse_types(e):
-    return Tinker.parse_list_from_string(Tinker.parse_string(e,"types", ET.tostring))
-
-def parse_ids(e):
-    s = Tinker.parse_string(e,"ids", ET.tostring)
-    ids = Tinker.parse_list_from_string(s)
-    for id in ids:
-        if(not Tinker.is_alphachar(id)):
-            sys.exit("Invalid ID \"%s\" found in ids attribute:\n %s" % (id, ET.tostring(e)))
-    return ids
+        
+    @classmethod
+    def parse_types(cls,e):
+        ts = parse_list(e,"types")
+        for t in ts:
+            if(t not in cls._C_KNOWN_TYPES):
+                Tinker.value_error("Types", t, cls._C_KNOWN_TYPES, ET.tostring(e))
+        return ts
 
 def check_default(d):
     default = d["default"]
     if(default not in d.keys()):
-        sys.exit("Invalid Default ID \"%s\" not found in list of ids %s from element:\n %s"
-                 % (default, list(d.keys()), ET.tostring(e)))
+        Tinker.key_error_xml("default", ET.tostring(e))
     
 def parse_default(e):
-    id = Tinker.parse_string(e, "default", ET.tostring)
-    if(not Tinker.is_alphachar(id)):
-        sys.exit("Invalid Default ID \"%s\" found in id attribute:\n %s" % (id, ET.tostring(e)))
+    id = parse_string(e, "default")
+    if(not Tinker.is_alphachar(id)): # TODO: Valid ID
+        Tinker.value_error_xml("default", id, "Alphanumeric Characters",
+                               ET.tostring(e))
     return id
+
+def parse_ports(e):
+    ports = ["r", "w", "rw"]
+    mem_ports = parse_list(e,"ports")
+    for mp in mem_ports:
+        if(mp not in ports):
+            Tinker.value_error_xml("ports", mp, str(ports), ET.tostring(e))
+    return mem_ports
+
+def parse_ratios(e):
+    ratios = ["Quarter", "Half","Full"]
+    mem_ratios = parse_list(e, "ratios")
+    for mr in mem_ratios:
+        if(mr not in ratios):
+            Tinker.value_error_xml("ratios", mr, str(ratios), ET.tostring(e))
+    return mem_ratios
+
+def parse_roles(e):
+    mem_roles = set(["primary", "secondary", "independent"])
+    roles = parse_list(e, "roles")
+    for mr in roles:
+        if(mr not in mem_roles):
+            Tinker.value_error_xml("roles", mr, str(roles), ET.tostring(e))
+    return roles
+
+def parse_grouping(e):
+    ids = parse_list(e, "grouping")
+    for id in ids:
+        if(not Tinker.is_alphachar(id)): # TODO: Valid ID
+            Tinker.value_error_xml("grouping", id, "Alphanumeric Characters",
+                                   ET.tostring(e))
+    return ids

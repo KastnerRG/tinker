@@ -39,6 +39,7 @@
 # Author: Dustin Richmond
 import Tinker, Phy
 import xml.etree.ElementTree as ET
+from IP import parse_int
 class QDR(Phy.Phy):
     _C_BURST_WIDTHS = range(1,5)
     _C_BURST_DEFAULT = 1
@@ -60,7 +61,7 @@ class QDR(Phy.Phy):
         of a custom board
         
         """
-        Phy.check_size(d["size"])
+        d = super(QDR,cls).validate(d)
         return
 
     def parse(self,e):
@@ -78,13 +79,12 @@ class QDR(Phy.Phy):
         d = super(QDR,self).parse(e)
         pow2_dq_pins = d["pow2_dq_pins"]
 
-        address_pins = Tinker.parse_int(e, "address_pins", ET.tostring)
-        burst = Tinker.parse_int(e, "burst", ET.tostring)
+        address_pins = parse_int(e, "address_pins")
+        burst = parse_int(e, "burst")
 
         size = pow2_dq_pins/8 * (2**address_pins) * burst
         d["size"] = int(size)
 
-        self.validate(d)
         return d
     
     def get_interface(self, sid, verbose=False):

@@ -44,6 +44,7 @@ from collections import defaultdict, Counter
 # Import Tinker Objects
 import Memory, Tinker, IP
 
+
 class Board(defaultdict):
     def __init__(self, version, board):
         p = Tinker.Tinker().get_board_xml(version, board)
@@ -74,9 +75,9 @@ class Board(defaultdict):
     def __parse_board_elem(self, e):
         d = defaultdict()
         # TODO: How do we handle verification/checking and mal-formed/missing errors?
-        d["version"] = Tinker.parse_float(e,"version", ET.tostring)
-        d["name"] = Tinker.parse_string(e,"name", ET.tostring)
-        d["model"] = Tinker.parse_string(e,"model", ET.tostring)
+        d["version"] = IP.parse_float(e,"version")
+        d["name"] = IP.parse_string(e,"name")
+        d["model"] = IP.parse_string(e,"model")
         return d
 
     def __parse_ip(self, r):

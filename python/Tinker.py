@@ -173,42 +173,9 @@ class Tinker():
         
         return boards
 
-def parse_list_from_string(s):
-    return [e.strip() for e in s.split(",")]
-        
-def parse_string(e, a, ts):
-    s = e.get(a)
-    if(s is None):
-        Tinker.key_error(a, ts(e))
-    return s
 
-def parse_macros(e, ts):
-    m = parse_string(e, "macros", ts)
-    macros = parse_list_from_string(m)
-    for m in macros:
-        if(not is_valid_verilog_name(m)):
-            sys.exit("Invalid macro \"%s\" found in macro attribute:\n  %s" % (m, ts(e)))
-    return macros
-
-def parse_float(e, key, ts):
-    s = parse_string(e, key, ts)
-    try:
-        v = float(s)
-        return v
-    except ValueError:
-        print "In key-value map:"
-        print ts(e)
-        value_error(ks, s, "Real Numbers")
-
-def parse_int(e, key, ts):
-    s = parse_string(e, key, ts)
-    try:
-        v = int(s)
-        return v
-    except ValueError:
-        print "In key-value map:"
-        print ts(e)
-        value_error(ks, s, "Integers")
+def contains_duplicates(l):
+    len(l) != len(set(l))
 
 def is_in_range(v, min, max):
     return (min <= v <= max)
@@ -246,10 +213,20 @@ def key_error(ks, ds):
     print ds
     sys.exit("Error! Key \"%s\" missing" % ks)
                      
+def key_error_xml(ks, es):
+    print "In Element:"
+    print es
+    sys.exit("Error! Key \"%s\" missing" % ks)
+
 def value_error(ks, vs, vvs):
     sys.exit(("Error! Key \"%s\" has invalid value \"%s\". " +
               "Valid values are: %s")
               % (ks, vs , vvs))
+
+def value_error_xml(ks, vs, vvs, es):
+    print "In XML Element:"
+    print es
+    value_error(ks,vs,vvs)
 
 def value_error_map(ks, vs, vvs, ds):
     print "In key-value map:"
@@ -261,7 +238,4 @@ def tostr_dict(d):
     
 def print_description(d):
     print tostr_dict(d)
-
     
-def contains_duplicates(l):
-    len(l) != len(set(l))
