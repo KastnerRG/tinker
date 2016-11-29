@@ -32,39 +32,27 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 # ----------------------------------------------------------------------
-# Filename: IP.py
-# Version: 0.1 
-# Description: Defines the IP object, which is anything that has resources
-# in an OpenCL Board Support Package
-# Author: Dustin Richmond
+import abc, sys
+import Interface
+class HostInterface(Interface.Interface):
+    def __init__(self, d):
+        """Construct a generic Interface Object
 
-# Import Python Utilities
-import xml.etree.ElementTree as ET
-from collections import defaultdict
-from Resources import Resources
-import abc
-
-class IP(defaultdict):
-    def __init__(self, e):
-        """
-        Construct a generic IP object that encapsulates a dictionary
-        
         Arguments:
 
-        e -- An element tree element containing the description of this
-        object
+        d -- a dictionary describing the attributes of the interface
 
         """
-        d = self.parse(e)
+        super(MemoryGroup,self).__init__(d)
+        d = self.parse(d)
         self.validate(d)
         self.update(d)
 
-    @abc.abstractmethod
     def parse(cls, e):
         """
-        Parse the description of this IP object from an element tree
-        element and return a defaultdictionary with the parameters
-        found.
+        
+        Parse the description of this IP object from an dictionary
+        return a defaultdictionary built from the key-value pairs.
 
         Arguments:
 
@@ -72,13 +60,13 @@ class IP(defaultdict):
         object
         
         """
+        pass
 
-    @abc.abstractmethod
-    def validate(self, d):
+    def validate(cls, d):
         """
 
         Validate the parameters that describe the intrinsic settings of
-        this IP
+        this Interface
 
         Arguments:
 
@@ -88,21 +76,11 @@ class IP(defaultdict):
         """
         pass
 
-    # Methods called when creating a specification
-    @abc.abstractmethod
-    def apply(self, e):
-        pass
-
-    @abc.abstractmethod
-    def fill(self, d):
-        pass
-
-    @abc.abstractmethod
-    def verify(cls, d):
+    def implement(self, b):
         """
 
-        Check a user-description to ensure that this IP object can
-        implement the desired settings.
+        Implement the Interface described by this object using the Board
+        object describing the IP available on this board. 
 
         Arguments:
 
@@ -110,17 +88,34 @@ class IP(defaultdict):
         of a custom board
         
         """
+        self.__fill(d)
+        self.validate(d)
         pass
 
-    @abc.abstractmethod
-    def get_interface(self,s): # TODO: interfaceS?
+    def __fill(self, d):
+        """
+
+        Fill in any missing defaults in a high level description used to
+        configure this object
+
+        Arguments:
+
+        d -- A Description object, containing the possibly incomplete
+        parsed user description of a custom board
+        
+        """
         pass
 
-    @abc.abstractmethod
-    def get_macros(self,s):
-        pass
+    def verify(self, d):
+        """
 
-def construct(cls, e):
-    import Memory
-    return Memory.Memory(e)
-    
+        Verify that this object can implement the high level description
+
+
+        Arguments:
+
+        d -- A Description object, containing the complete description
+        of a the IP configuration
+        
+        """
+        pass

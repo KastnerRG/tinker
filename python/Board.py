@@ -42,187 +42,59 @@
 import xml.etree.ElementTree as ET, math
 from collections import defaultdict, Counter
 # Import Tinker Objects
-import Memory, Tinker
+import Memory, Tinker, IP
 
-class Board():
+class Board(defaultdict):
     def __init__(self, version, board):
-        xml = Tinker.Tinker().get_board_xml(version, board)
-        Tinker.check_path(xml)
+        p = Tinker.Tinker().get_board_xml(version, board)
+        et = ET.parse(p)
         self.types = {}
-        self.info = self.parse_info(ET.parse(xml)) 
-
+        self.update(self.parse(et))
     def get_info(self):
         return self.info;
-
+    
+    # TODO: Integrate into the print function
     def print_info(self,l):
-        print l*"\t" + "Available Memories: " + str(self.info["types"])
-        for t,obj in self.types.iteritems():
-            obj.print_info(l + 1)
-        
-    def parse_info(self,xml):
-        d = defaultdict();
-        r = xml.getroot()
-        d["version"] = r.get("version")
-        d["name"] = r.get("name")
-        d["model"] = r.get("model")
-        d["types"] = []
+        print self
+            
+    # verify that the high level specification can be implemented on the board
+    def verify(self, s):
+        pass
 
-        for e in r.findall("./memory/[@type]"):
-            mem = Memory.Memory(e);
-            dm = mem.get_info()
-            d["types"].append(dm["type"])
-            d[dm["type"]] = dm
-            self.types[dm["type"]] = mem
-                        
+    # Fill out the high level specification using defaults from the board
+    def fill(self, s):
+        pass
+        
+    def parse(self, et):
+        r = et.getroot()
+        d = self.__parse_board_elem(r)
+        d.update(self.__parse_ip(r))
         return d
 
-    def build_spec(self, spec, version, specification=False):
-        s = spec.get_info()
-        
-        if(version == "14.1" and not specification):
-            r = ET.Element("board", attrib={"version": "0.9", "name":self.info["name"] + "_" + s["Name"]})
-        else:
-            r = ET.Element("board", attrib={"version": version, "name":self.info["name"] + "_" + s["Name"]})
-        if(specification):
-            r.set("file", self.info["name"]+".xml")
+    def __parse_board_elem(self, e):
+        d = defaultdict()
+        # TODO: How do we handle verification/checking and mal-formed/missing errors?
+        d["version"] = Tinker.parse_float(e,"version", ET.tostring)
+        d["name"] = Tinker.parse_string(e,"name", ET.tostring)
+        d["model"] = Tinker.parse_string(e,"model", ET.tostring)
+        return d
 
-        # Compile Directives
-        #  <compile project="top" revision="top" qsys_file="system.qsys" generic_kernel="1">
-        #    <generate cmd="qsys-generate --synthesis=VERILOG system.qsys"/>
-        #    <synthesize cmd="quartus_sh --flow compile top -c top"/>
-        #    <auto_migrate platform_type="auto" >
-        #      <include fixes=""/>
-        #      <exclude fixes=""/>
-        #    </auto_migrate>
-        #  </compile>
-        c = ET.SubElement(r,"compile", attrib={"project":"top",
-                                           "revision":"top",
-                                           "qsys_file":"system.qsys",
-                                           "generic_kernel":"1"})
-        ET.SubElement(c,"generate", attrib={"cmd":"qsys-generate --synthesis=VERILOG system.qsys"})
-        ET.SubElement(c,"synthesize", attrib={"cmd":"quartus_sh --flow compile top -c top"})
-        am = ET.SubElement(c,"auto_migrate", attrib={"platform_type":"auto"})
-        ET.SubElement(am,"include", attrib={"fixes":""})
-        ET.SubElement(am,"exclude", attrib={"fixes":""})
-                                                  
-        # Summary of Resources
-        resources = Counter({"alms":0,
-                             "ffs":0,
-                             "rams":0,
-                             "dsps":0})
-        
-        for sys in s["Systems"]:
-            t = s[sys]["Type"]
-            resources.update(self.info[t]["resources"])
+    def __parse_ip(self, r):
+        d = defaultdict()
+        for (t, td) in self.__parse_ip_types(r):
+            d.update(td)
+        return d
 
-            for i in s[sys]["Interfaces"]:
-                resources.update(self.info[t][i]["resources"])
-        deve = ET.SubElement(r,"device", attrib={"device_model":self.info["model"]})
-        re = ET.SubElement(deve,"used_resources")
-        for rt,num in resources.iteritems():
-            ET.SubElement(re, rt, attrib={"num":str(num)})
-
-        base = 0
-        size_default = 0
-        for sys in s["Systems"]:
-            # TODO: Set default burst and document
-            # This is pretty ugly. We should check and set defaults when we first parse the specification.
-            if("Burst" not in s[sys]):
-                s[sys]["Burst"] = 16
-            t = s[sys]["Type"]
-            m = self.types[t]
-            sz = 0
-            for i in s[sys]["Interfaces"]:
-                sz += int(s[sys][i]["Size"],16)
-
-            # Update Base. Base address must be size-aligned.
-            if((base % sz) is not 0):
-                base += (sz - (base % sz))
-
-            # Round the base address to the nearest multiple of the interface size.
-            e = m.build_spec(spec,sys,base,specification=specification)
-            r.append(e)
-
-            base += sz
-            if(sys == "0"):
-                 # TODO: God this is ugly. But it's seemingly the only way to calculate the width cleanly (unless we do it in the specification step)
-                log_sz = int(math.log(sz)/math.log(2))
-                b = int(s["0"]["Burst"])
-                burstw = int(math.log(b)/math.log(2)) + 1
-                m_if0 = s["0"]["Interfaces"][0]
-
-                m_info = m.get_info()
-                m_width = int(1/(Tinker.ratio2float(s["0"]["Ratio"])) * m_info[m_if0]["dq_pins"] * m_info[m_if0]["clock_ratio"])
-                m_bytes = m_width/8
-                log_b = int(math.log(m_bytes)/math.log(2))
-
-                #print log_sz, b, burstw
-
-        # ACL Plumbing
-        intfs = ET.SubElement(r, "interfaces")
-        
-        # TODO: What is the purpose of misc?
-        kernel_cra = ET.SubElement(intfs,"interface",
-                                   attrib={"name":"tinker",
-                                            "port":"kernel_cra",
-                                            "type":"master",
-                                            "width":"64",
-                                            "misc":"0"})
-
-        kernel_irq = ET.SubElement(intfs,"interface",
-                                   attrib={"name":"tinker",
-                                           "port":"kernel_irq",
-                                           "type":"irq",
-                                           "width":"1"})
-        snoop = ET.SubElement(intfs,"interface",
-                              attrib={"name":"tinker",
-                                      "port":"acl_internal_snoop",
-                                      "type":"streamsource",
-                                      "enable":"SNOOPENABLE",
-                                      "clock":"tinker.kernel_clk",
-                                      "width":str(log_sz - log_b  + burstw + 1)})
-        kclk_rst = ET.SubElement(intfs,"kernel_clk_reset",
-                                 attrib={"clk":"tinker.kernel_clk",
-                                         "clk2x":"tinker.kernel_clk2x",
-                                         "reset":"tinker.kernel_reset"})
-        # Host Interface
-        host = ET.SubElement(r,"host")
-        ET.SubElement(host,"kernel_config",
-                      attrib={"start":"0x00000000","size":"0x0100000"})        
-        return r
-
-    def gen_macros(self, spec):
-        s = spec.get_info()
-        macros =""
-        for sys in s["Systems"]:
-            t = s[sys]["Type"]
-            mem = self.types[t]
-            macros += mem.gen_macros(spec, sys)
-        return macros
-
-    def gen_system(self, spec, sysxml):
-        sysroot = ET.parse(sysxml).getroot()
-        s = spec.get_info()
-        for sys in s["Systems"]:
-            t = s[sys]["Type"]
-            for i in s[sys]["Interfaces"]:
-                n = t.lower()+ "_" + i
-                r = s[sys][i]["Role"]
-                ET.SubElement(sysroot,"interface",
-                              attrib={"name":n,
-                                      "internal":"tinker."+n,
-                                      "type":"conduit",
-                                      "dir":"end"})
-                if(r == "primary"):
-                    ET.SubElement(sysroot,"interface",
-                                  attrib={"name":n+"_mem_oct",
-                                          "internal":"tinker."+n+"_oct",
-                                          "type":"conduit",
-                                          "dir":"end"})
-                if(r == "primary" or r == "independent"):
-                    ET.SubElement(sysroot,"interface",
-                                  attrib={"name":n + "_pll_ref",
-                                          "internal":"tinker."+n+"_pll_ref",
-                                          "type":"conduit",
-                                          "dir":"end"})
-        return sysroot
+    def __parse_ip_types(self, r):
+        ts = set([e.tag for e in r.findall("./")])
+        for t in ts:
+            yield (t, self.__parse_ip_type(r, t))
+                        
+    def __parse_ip_type(self, r, t):
+        d = defaultdict()
+        d["IP"] = defaultdict()
+        for te in r.findall("./%s" % t):
+            ip = IP.construct(t, te)
+            d["IP"][ip["type"]] = ip
+        return d
+    

@@ -40,71 +40,61 @@
 import Tinker, Phy
 import xml.etree.ElementTree as ET
 class QDR(Phy.Phy):
-    def __init__(self, e, enum):
-        self.t = "QDR"
-        super(QDR,self).__init__(e, "QDR", enum)
-        info = self.__parse_info(e,self.t,self.info["id"])
-        self.info.update(info)
+    _C_BURST_WIDTHS = range(1,5)
+    _C_BURST_DEFAULT = 1
+    _C_CLOCK_RATIOS = ["Half", "Quarter", "Full"]
+    _C_RATE = 2 # Double Data Rate (Not Quad. Thanks, Marketing)
+    def __init__(self, e):
+        super(QDR,self).__init__(e)
 
-    def __parse_info(self, e, t, id):
-        d = {}
-        d["clock_ratio"] = 2
-        d["type"] = "QDR"
-        fmax_mhz = e.get("fmax_mhz")
-        if(not Tinker.is_number(fmax_mhz)):
-            print (("ERROR: Maximum Frequency of type %s, is %s was %s, which is not a number.\n" +
-                        "Check the board-specific XML file") %
-                        (t, id, str(fmax)))
-            exit(1)
-        fmax_mhz = int(fmax_mhz)
-        d["fmax_mhz"] = fmax_mhz
+    @classmethod
+    def validate(cls, d):
+        """
 
-        ap = e.get("address_pins");
-        if(not Tinker.is_number(ap)):
-            print ("ERROR: address_pins of type %s id %s is not a number: %s:" %
-                   (self.t, id, ap))
-            exit(1)
-        ap = int(ap)
-        d["addess_pins"] = ap
+        Validate the parameters that describe the intrinsic settings of
+        this IP
+
+        Arguments:
+
+        d -- A Description object, containing the parsed user description
+        of a custom board
         
-        dqp = e.get("dq_pins");
-        if(not Tinker.is_number(dqp)):
-            print ("ERROR: dq_pins of type %s id %s is not a number: %s:" %
-                   (self.t, id, dqp))
-            exit(1)
-        dqp = int(dqp)
-        d["dq_pins"] = dqp
+        """
+        Phy.check_size(d["size"])
+        return
 
-        b = e.get("burst");
-        if(not Tinker.is_number(b)):
-            print ("ERROR: burst of type %s id %s is not a number: %s:" %
-                   (self.t, id, b))
-            exit(1)
-        b = int(b)
-        d["burst"] = int(b)
+    def parse(self,e):
+        """
+        Parse the description of this IP object from an element tree
+        element and return a defaultdictionary with the parameters
+        found.
 
-        d["oct_pin"] = e.get("oct_pin");
+        Arguments:
 
-        dqp2 = 2 ** Tinker.clog2(dqp)
-        d["pow2_dq_pins"] = dqp2
+        e -- An element tree element containing the description of this
+        object
+        
+        """
+        d = super(QDR,self).parse(e)
+        pow2_dq_pins = d["pow2_dq_pins"]
 
-        size = dqp2/8 * (2**ap) * b
-        d["size"] = size
+        address_pins = Tinker.parse_int(e, "address_pins", ET.tostring)
+        burst = Tinker.parse_int(e, "burst", ET.tostring)
 
-        d["bandwidth_bs"] = (fmax_mhz * 10**6 * 2 * dqp2) / 8
+        size = pow2_dq_pins/8 * (2**address_pins) * burst
+        d["size"] = int(size)
 
+        self.validate(d)
         return d
+    
+    def get_interface(self, sid, verbose=False):
+        r = super(QDR,self).get_interface(verbose=specification)
+        i.set("latency","150") # Standard, recommended by Altera
+        r_attrib = {"name": "kernel_%s_if_%s_r" % (sid,id),
+                    "direction":"r"}
+        ET.SubElement(i,"port",attrib=r_attrib)
+        w_attrib = {"name": "kernel_%s_if_%s_w" % (sid,id),
+                    "direction":"w"}
+        ET.SubElement(i,"port",attrib=w_attrib)
+        return i
 
-    def set_params(self):
-        pass
-
-    def print_info(self,l):
-        super(QDR,self).print_info(l)
-        print (l + 1)*"\t" + "Bandwidth: %d Bytes/Sec" % self.info["bandwidth_bs"]
-
-    def build_spec(self, spec, n , id, base, burst, width, specification=False):
-        r = super(QDR,self).build_spec(spec,n,id,base, burst, width, specification=specification)
-        r.set("latency","150") # Standard, recommended by Altera
-        ET.SubElement(r,"port",attrib={"name": "kernel_%s_if_%s_r" % (n,id), "direction":"r"})
-        ET.SubElement(r,"port",attrib={"name": "kernel_%s_if_%s_w" % (n,id), "direction":"w"})
-        return r

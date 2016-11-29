@@ -41,9 +41,10 @@
 
 # Import Python Utilities
 import os, shutil, xml.etree.ElementTree as et, argparse as ap, sys as System
+import json
 from xml.dom import minidom
 # Import Tinker Objects
-import Tinker, Board, Specification
+import Tinker, Board, Description
 
 def buildargs(par):
     par.add_argument("-l", "--list-boards", action="store_true",
@@ -90,29 +91,32 @@ def main():
         tinker.check_board(version, board)
         
         print "Getting Info for Version: %s, Board: %s" % (version, board)
-        Board.Board(version, board).print_info(0)
+        s = Board.Board(version, board)
+        print json.dumps(s, indent = 4)
         
     elif(args.generate):
         path = args.generate[0]
         version = args.generate[1]
         board = args.generate[2]
         tinker.check_board(version, board)
-        
-        s = Specification.Specification(path)
+
+        # p = Package(path, version, board)
+        s = Description.Description(path)
+        print json.dumps(s,indent=2)
         b = Board.Board(version, board)
+        exit(1)
+        print b
         
         board_name = board + "_" + s.get_info()["Name"]
         outdir_path = "./" + board_name + "/"
 
-        # TODO: Just warn & exit if directory exists
+        # TODO: remove get_board_path call?
         src_path = tinker.get_board_path(version, board)
         try:
             shutil.copytree(src_path, outdir_path)
         except OSError:
             System.exit("Error: Board Output Directory %s Exists!" % outdir_path);
 
-        # TODO: remove get_board_path call?
-        
         # Build Board Specification and Board Spec files
         specification = b.build_spec(s, version, specification=True)
         specification_fp = open(outdir_path + "board_specification.xml","w")

@@ -42,92 +42,141 @@
 import xml.etree.ElementTree as ET, math
 from collections import defaultdict
 # Import Tinker Objects
-import DDR, QDR, Phy, IP, Tinker
+import IP, Tinker
+import abc, sys
 
 class Memory(IP.IP):
-    def __init__(self, xml):
-        super(Memory, self).__init__(xml)
-        self.ifs = {}
-        info = self.parse_info(xml) 
-        self.info.update(info)
-        self.spec_keys = {"name": max}
-        self.specification_keys = {}
+    def __init__(self, e):
+        """
+
+        Construct a generic Memory object that encapsulates a IP object
+        using the provided element tree.
+
+        Arguments:
+
+        e -- An element tree element containing the description of this
+        Memory object
         
-    def get_info(self):
-        return self.info;
+        """
+        super(Memory, self).__init__(e)
 
-    def print_info(self,l):
-        print "Showing info for memory type %s:" % self.info["type"]
-        if(self.info["division"] != "continuous"):
-            print l*"\t" + "Number of Interfaces: %d" % int(self.info["quantity"])
-        for k,i in self.ifs.iteritems():
-            i.print_info(l)
+    @classmethod
+    def validate(cls, d):
+        """
 
-    def parse_info(self,r):
-        d = defaultdict();
-        t = r.get("type")
-        d["type"] = t
-        d["enumeration"] = r.get("enum")
-        d["division"] = r.get("division")
-        # Burst is an overloaded term. Burst-4 QDR gets 4 consecutive addresses on one access.
-        d["burst"] = r.get("burst")
-        # TODO: List diff for enum
-        if(d["division"] == "discrete"):
-            d["quantity"] = r.get("quantity")
-        else:
-            d["quantity"] = "\"infinite\""
-        d["ids"] = []
-        for e in r.findall("./[@type='%s']/*" % t):
-            mem = Phy.initialize(t, e, d["enumeration"])
-            di = mem.get_info()
-            d[di["id"]] = di
-            d["ids"].append(di["id"])
-            self.ifs[di["id"]] = mem
+        Validate the parameters that describe the intrinsic settings of
+        this IP
+
+        Arguments:
+
+        d -- A Description object, containing the parsed user description
+        of a custom board
+        
+        """
+        return
+        
+    @abc.abstractmethod
+    def fill(cls, d):
+        """
+
+        Fill in any missing defaults in a high level description used to
+        configure this object
+
+        Arguments:
+
+        d -- A Description object, containing the possibly incomplete
+        parsed user description of a custom board
+        
+        """
+        pass
+
+    @abc.abstractmethod
+    def verify(cls, d):
+        """
+
+        Verify that this object can implement the high level description
+
+
+        Arguments:
+
+        d -- A Description object, containing the complete description
+        of a the IP configuration
+        
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_interface(self,s):
+        pass
+    
+    @abc.abstractmethod
+    def get_macros(self,s):
+        pass
+
+    def parse(self,e):
+        d = defaultdict()
+        d["type"] = "memory"
+        ts = parse_types(e)
+        for se in e.findall("./*"):
+            t = se.tag
+            if(t not in ts):
+                sys.exit("Memory Type \"%s\" from subelement tag not found in types attribute of parent element:\n %s"
+                         % (t, ET.tostring(e)))                
+            td = self.parse_type(t,se)
+            self.validate_type(td)
+            d[t] = td
+        self.validate(d)
         return d
+    
+    def parse_type(self,t,e):
+        d = defaultdict()
+        ids = parse_ids(e)
+        ides = e.findall("phy")
+        for ide in ides:
+            pd = self.construct(t, ide)
+            id = pd["id"]
+            if(id not in ids):
+                sys.exit("Unknown ID \"%s\" found while parsing element:\n %s"
+                         % (id, ET.tostring(ide)))
+            d[id] = pd
+        default = parse_default(e)
+        d["default"] = default
+        return d
+    
+    def validate_type(self,d):
+        check_default(d)
 
-    def build_spec(self,spec, n, base, specification=False):
-        s = spec.get_info()
-        r = ET.Element("global_mem", attrib={"name": self.info["type"] + "_" + str(n)})
+    @classmethod
+    def construct(cls, t, e):
+        if(t == "DDR3"):
+            import DDR
+            return DDR.DDR(e)
+        elif(t == "QDRII"):
+            import QDR
+            return QDR.QDR(e)
+        elif(t == "LOCAL"):
+            import LOCAL
+            return LOCAL.LOCAL(e)
 
-        burst = s[n].get("Burst","16")
-        
-        if0 = s[n]["Interfaces"][0]
-        width = int(1/(Tinker.ratio2float(s[n]["Ratio"])) * self.info[if0]["pow2_dq_pins"] * self.info[if0]["clock_ratio"])
-        intbytes = int(burst) * width / 8
-        r.set("interleaved_bytes", str(intbytes))
-        if(n == "0"):
-            r.set("config_addr", "0x018")
-            if(specification): # Reintroduce in 15.1
-                r.set("default","1")
-        else:
-            r.set("config_addr", hex(int("0x100",16) + (int(n)-1) * int("0x18",16)))
+def parse_types(e):
+    return Tinker.parse_list_from_string(Tinker.parse_string(e,"types", ET.tostring))
 
-        size = 0
-        bandwidth = 0
-        for id in s[n]["Interfaces"]:
-            bandwidth += self.info[id]["bandwidth_bs"]
-            i = self.ifs[id]
-            e = i.build_spec(spec,n,id,base+size,burst,width,specification=specification)
-            size += int(s[n][id]["Size"],16)
-            r.append(e);
-        
-        r.set("max_bandwidth", str(int(bandwidth)/1000000))
-        if(specification):
-            r.set("base_address",hex(base))
-            r.set("quantity",str(len(s[n]["Interfaces"])))
-            r.set("width",str(width))
-            r.set("sys_id",str(n))
-            r.set("type",s[n]["Type"])
-            r.set("maxburst",str(burst))
-            r.set("addr_width",str(int(math.log(size,2))))
-            r.set("role",s[n]["Role"])
-        return r
+def parse_ids(e):
+    s = Tinker.parse_string(e,"ids", ET.tostring)
+    ids = Tinker.parse_list_from_string(s)
+    for id in ids:
+        if(not Tinker.is_alphachar(id)):
+            sys.exit("Invalid ID \"%s\" found in ids attribute:\n %s" % (id, ET.tostring(e)))
+    return ids
 
-    def gen_macros(self, spec, n):
-        s = spec.get_info()
-        macros =""
-        for intf in s[n]["Interfaces"]:
-            i = self.ifs[intf]
-            macros += i.gen_macros(spec, n)
-        return macros
-
+def check_default(d):
+    default = d["default"]
+    if(default not in d.keys()):
+        sys.exit("Invalid Default ID \"%s\" not found in list of ids %s from element:\n %s"
+                 % (default, list(d.keys()), ET.tostring(e)))
+    
+def parse_default(e):
+    id = Tinker.parse_string(e, "default", ET.tostring)
+    if(not Tinker.is_alphachar(id)):
+        sys.exit("Invalid Default ID \"%s\" found in id attribute:\n %s" % (id, ET.tostring(e)))
+    return id

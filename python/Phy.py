@@ -43,156 +43,293 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 # Import Tinker Objects
 import Tinker, IP
+import abc, sys
 
 class Phy(IP.IP):
-    def __init__(self, e, t, enum):
+    _C_BURST_WIDTHS = [] # TODO: Burst widths should be power of 2
+    _C_BURST_DEFAULT = 0 # TODO: Burst widths should be power of 2
+    _C_CLOCK_RATIOS = [] 
+    _C_MAX_DATA_BUS_WIDTH = 2048
+    
+    def __init__(self, e):
         super(Phy,self).__init__(e)
-        self.t = t;
-        info = self.__parse_info(e,t,enum) 
-        self.info.update(info)
-        self.params = self.__parse_params(e)
 
-    def __parse_info(self, e, t, enum):
-        d = defaultdict()
-        id = e.get("id")
+    @classmethod
+    def validate(cls, d):
+        """
+
+        Validate the parameters that describe the intrinsic settings of
+        this IP
+
+        Arguments:
+
+        d -- A Description object, containing the parsed user description
+        of a custom board
+        
+        """
+        check_frequency(d["fmax_mhz"])
+        check_frequency(d["fref_mhz"])
+        check_dq_pins(d["dq_pins"])
+        check_pow_2_dq_pins(d["pow2_dq_pins"])
+        check_bandwidth_bs(d["bandwidth_bs"])
+
+        return
+        
+    def parse(self,e):
+        d = {}
+
+        id = parse_id(e)
+        fref_mhz = Tinker.parse_float(e, "fref_mhz", ET.tostring)
+        fmax_mhz = Tinker.parse_float(e, "fmax_mhz", ET.tostring)
+        dq_pins = Tinker.parse_int(e, "dq_pins", ET.tostring)
+        macros = Tinker.parse_macros(e, ET.tostring)
+
         d["id"] = id
-        if(not Tinker.is_alphachar(id)):
-            print (("ERROR: Expected alphabetical character ID for type %s but ID is %s.\n" +
-                        "Check the board-specific XML file") %
-                        (t, id))
-            exit(1)
-
-        macro = e.get("macro")
-        d["macro"] = macro
-
-        roles = [s.strip() for s in e.get("roles").split(",")]
-        err = Tinker.list_diff(roles,["primary","secondary","independent"])
-        if(len(err) > 0):
-            print "ERROR: Unrecognized role(s) in XML file: %s" % str(err)
-            exit(1)
+        d["fmax_mhz"] = fref_mhz
+        d["fref_mhz"] = fref_mhz
+        d["dq_pins"] = dq_pins
+        d["macros"] = macros
+        
+        roles = parse_roles(e)
+        group = parse_grouping(e)
+        group.remove(id)
+        ports = parse_ports(e)
+        ratios = parse_ratios(e)
+        octs = parse_oct_pins(e)
 
         d["roles"] = roles
-
-        gs = [s.strip() for s in e.get("grouping").split(",")]
-        gs.remove(id)
-        for p in gs:
-            if(not Tinker.is_alphachar(p)):
-                print (("ERROR: Expected alphabetical character ID for type %s but ID is %s.\n" +
-                        "Check the board-specific XML file") %
-                        (t, id))
-                exit(1)
-        d["group"] = gs
-        
-        ports = [s.strip() for s in e.get("ports").split(",")]
-        err = Tinker.list_diff(ports,["r","w","rw"])
-        if(len(err) > 0):
-            print (("ERROR: Unknown port type(s) for %s, id %s in XML file: %s" +
-                    "Check the board-specific XML file") %
-                    (t, id,str(err)))
-            exit(1)
+        d["group"] = group
         d["ports"] = ports
-
-        ratios = [s.strip() for s in e.get("ratios").split(",")]
-        err = Tinker.list_diff(ratios,["Quarter","Half","Full"])
-        if(len(err) > 0):
-            print (("ERROR: Unknown ratio type(s) for %s, id %s in XML file: %s\n" +
-                    "Check the board-specific XML file") %
-                    (t, id,str(err)))
-            exit(1)
         d["ratios"] = ratios
+        d["oct_pins"] = octs
 
-        rate = e.get("rate")
-        err = Tinker.list_diff([rate],["single","double"])
-        if(len(err) > 0):
-            print (("ERROR: Unknown rate for %s, id %s in XML file: %s\n" +
-                    "Check the board-specific XML file") %
-                    (t, id,str(err)))
-            exit(1)
-        d["rate"] = rate
+        pow2_dq_pins = int(2 ** Tinker.clog2(dq_pins))
+        d["pow2_dq_pins"] = pow2_dq_pins
+        d["bandwidth_bs"] = int((d["fmax_mhz"] * 10**6 * self._C_RATE * pow2_dq_pins) / 8)
 
-        fref_mhz = e.get("fref_mhz")
-        if(not Tinker.is_number(fref_mhz)):
-            print (("ERROR: Maximum Frequency of type %s, is %s was %s, which is not a number.\n" +
-                        "Check the board-specific XML file") %
-                        (t, id, str(fref)))
-            exit(1)
-        d["fref_mhz"] = int(fref_mhz)
+        Phy.validate(d)
         return d
 
-    def __parse_params(self,e):
-        ps = {}
-        for p in e.findall("./parameter"):
-            ps[p.get("name")] = p.get("value")
-        return ps
+    def configure(self, d):
+        """
 
-    def get_info(self):
-        return self.info
+        Configure this object according to a high level description
+        fill in any missing defaults, and verify that the description
+        can be implemented
 
-    def print_info(self,l):
-        print l*"\t" + "Interface ID: %s" % self.info["id"]
-        print (l + 1)*"\t" + "Size: 0x%x (%d bytes)" % (self.info["size"],self.info["size"])
-        print (l + 1)*"\t" + "Max Freq: %s MHz" % str(self.info["fmax_mhz"])
-        print (l + 1)*"\t" + "Fabric Ratios: %s" % str(self.info["ratios"])
-        print (l + 1)*"\t" + "Associated Interfaces: %s" % str(self.info["group"])
-        print (l + 1)*"\t" + "Roles: %s " % str(self.info["roles"])
-        print (l + 1)*"\t" + "Ports: %s " % str(self.info["ports"])
+        Arguments:
 
-    def set_params(self):
-        pass
+        d -- A Description object, containing the parsed user description
+        of a custom board
+        
+        """
+        d.update(self)
+        # TODO: Check passed-in parameters
+        d = self.__fill(d)
+        d = self.verify(d)
+        self.update(d)
 
-    def build_spec(self, spec, n , id, base, burst, width, specification=False):
-        s = spec.get_info()
-        size = int(s[n][id]["Size"],16)
-        if(size > self.info["size"]):
-            print "ERROR! Size is too large for memory"
-            exit(1)
-        r = ET.Element("interface", attrib={"name": "tinker", "type":"slave", "address":str(hex(base)), "size":str(hex(size))})
+    def __fill(self, d):
+        """
 
-        # Check that the width is valid:
-        dqp2 = self.info["pow2_dq_pins"]
-        ratio_ok = False;
-        rate = Tinker.rate2int(self.info["rate"])
-        ratio = "notok"
-        for v in self.info["ratios"]:
-            if(width == int(rate * dqp2 / Tinker.ratio2float(v))):
-                ratio = Tinker.ratio2float(v)
-                ratio_ok = True
-                break
-        if(ratio is "not ok"):
-                print "ERROR: No possible fabric ratio for desired fabric width in System %s" % id
-                exit(1)
-        r.set("width", str(width))
-        r.set("maxburst", str(burst))
-        if(specification):
-            primary = s[n]["Primary"]
-            r.set("id", str(id))
-            r.set("ratio", v)
-            r.set("role", s[n][id]["Role"])
-            if(s[n][id]["Role"] == "secondary"):
-                r.set("shared","pll,dll,oct")
-                r.set("primary",primary)
-            elif(s[n][id]["Role"] == "independent"):
-                r.set("shared","oct")
-                r.set("primary",primary)
-            else:
-                r.set("shared","")
+        Fill in any missing defaults in a high level description used to
+        configure this object
 
-            r.set("mem_frequency_mhz",str(self.info["fmax_mhz"]))
-            r.set("ref_frequency_mhz",str(self.info["fref_mhz"]))
+        Arguments:
+
+        d -- A Description object, containing the possibly incomplete
+        parsed user description of a custom board
+        
+        """
+
+        if("ratio" not in d and "width" not in d):
+            d["ratio"] = self.get_default_ratio()
+            d["width"] = int(self["pow2_dq_pins"] / Tinker.ratio2float(d["ratio"])) * self._C_RATE
+            
+        elif("width" in d):
+            d["ratio"] = Tinker.int2ratio(d["width"]/ self["pow2_dq_pins"])
+
+        elif("ratio" in d):
+            d["width"] = int(self["pow2_dq_pins"] / Tinker.ratio2float(d["ratio"])) * self._C_RATE
+            
+        if("burst" not in d):
+            d["burst"] = self.get_default_burst()
+
+    def verify(self, d):
+        """
+
+        Verify that this object can implement the high level description
+
+
+        Arguments:
+
+        d -- A Description object, containing the complete description
+        of a the IP configuration
+        
+        """
+        # TODO: Check should take the dictionary.
+        # TODO: Tinker.key_error
+        # These should be passed in from the system..
+        self.check_base_address(d.get("base_addr"));
+        self.check_oct_pin(d.get("oct_pin"))
+        self.check_role(d.get("role"))
+
+        # Truly optional defaults
+        self.check_ratio(d.get("ratio"))
+        self.check_data_bus_width(d.get("width"));
+        self.check_max_burst(d.get("maxburst"))
+        return d
+
+    def get_interface(self, id, verbose=False):
+        self.verify(self)
+        i = ET.Element("interface")
+
+        i.set("name","tinker")
+        i.set("type","slave")
+        i.set("address", str(hex(self["base_addr"])))
+        i.set("size", str(hex(self["size"])))
+        i.set("width", str(self["width"])) 
+        i.set("maxburst", str(self["burst"]))
+        if(verbose):
+            self.__set_verbose_interface(i)
+            
+        return i
+    
+    def __set_verbose_interface(self, i):
+        i.set("id", self["id"])
+        i.set("ratio", self["ratio"])
+        i.set("role", self["role"])
+        if(self["role"] == "secondary"):
+            i.set("shared","pll,dll,oct")
+            i.set("primary",self["primary"])
+        elif(self["role"] == "independent"):
+            i.set("shared",self["oct_pin"])
+            i.set("primary",self["primary"])
+        else:
+            i.set("shared","")
+
+        i.set("mem_frequency_mhz",str(self["fmax_mhz"]))
+        i.set("ref_frequency_mhz",str(self["fref_mhz"]))
             
         return r
 
-    def gen_macros(self, spec, n):
-        return "`define " + self.info["macro"] + "\n"
+    @classmethod
+    def get_default_burst(cls):
+        return cls._C_BURST_DEFAULT
+    
+    @classmethod
+    def get_default_ratio(cls):
+        if("Quarter" in cls._C_CLOCK_RATIOS):
+            return "Quarter"
+        if("Half" in cls._C_CLOCK_RATIOS):
+            return "Half"
+        return "Full"
+
+    def check_ratio(ratio):
+        if(ratio is None):
+            sys.exit("Ratio cannot be unspecified in configuration")
+        if(ratio not in self._C_CLOCK_RATIOS):
+            sys.exit("Invalid Ratio %s Specified for Phy" % ratio)
+
+    def check_role(role):
+        if(role is None):
+            sys.exit("Role cannot be unspecified in configuration")
+        if(role not in self["roles"]):
+            sys.exit("Invalid Role %s Specified for Phy" % role)
+
+    def check_base_address(self, base):
+        if(base is None):
+            sys.exit("Base address cannot be unspecified in configuration")
+        if(not Tinker.is_in_range(base, 0, (2 ** 64) - self["size"])):
+            sys.exit("Invalid Base Address %x Specified for Phy" % base)
         
-def initialize(t, e, enum):
-    if(t == "DDR3"):
-       import DDR
-       return DDR.DDR(e, enum)
-    elif(t == "QDRII"):
-       import QDR
-       return QDR.QDR(e, enum)
-    elif(t == "LOCAL"):
-       import LOCAL
-       return LOCAL.LOCAL(e, enum)
-                                           
+    def check_data_bus_width(width):
+        if(width is None):
+            sys.exit("Data-Bus width cannot be unspecified in configuration")
+        if(not Tinker.is_pow_2(width)):
+            sys.exit("Invalid Non-power-of-2 Bus-Width %x Specified for Phy" % width)
+        if(width % self["pow2_dq_width"] != 0):
+            sys.exit("Bus-width %x must be a multiple of the POW2 DQ Pins in Phy" % width)
+        if(not Tinker.is_in_range(width, 0, self._C_MAX_DATA_BUS_WIDTH)):
+            sys.exit("Invalid Bus-Width %x Specified for Phy" % width)
+
+    def check_max_burst(burst):
+        if(burst is None):
+            sys.exit("Burst cannot be unspecified in configuration")
+        if(not Tinker.is_pow_2(burst)):
+            sys.exit("Invalid Max-Burst paramter %x Specified for Phy" % burst)
+        if(burst not in self._C_BURST_WIDTHS):
+            sys.exit("Invalid Max-Burst parameter %x Specified for Phy" % burst)
+
+def check_frequency(f_hz):
+    if(not Tinker.is_in_range(f_hz, 0, 10**9)):
+        sys.exit("Invalid Frequency %f Specified for Phy" % f_hz)
+
+def check_dq_pins(p):
+    if(not Tinker.is_in_range(p, 0, 128)):
+        sys.exit("Invalid Number of DQ (Data) Pins %d Specified for Phy" % p)
+        
+def check_pow_2_dq_pins(p):
+    if(not Tinker.is_in_range(p, 0, 128)):
+        sys.exit("Invalid Power-of-2 DQ (Data) Pins %d Specified for Phy" % p)
+    if(not Tinker.is_pow_2(p)):
+        sys.exit("Invalid Power-of-2 DQ (Data) Pins %d is not a power of 2" % p)
+
+def check_bandwidth_bs(s):
+    if(not Tinker.is_in_range(s,0,1<<32)):
+        sys.exit("Invalid Size %s Specified for Phy" % s)
+
+def check_size(s):
+    if(not Tinker.is_in_range(s,0,1<<32)):
+        sys.exit("Invalid Size %s Specified for Phy" % s)
+    if(not Tinker.is_pow_2(s)):
+        sys.exit("Invalid Non-power-of-2 Size %s Specified for Phy" % s)
+
+def parse_roles(e):
+    roles = ["primary", "secondary","independent"]
+    s = Tinker.parse_string(e,"roles", ET.tostring)
+    mem_roles = Tinker.parse_list_from_string(s)
+    for mr in mem_roles:
+        if(mr not in roles):
+            sys.exit("Invalid role \"%s\" found in roles attribute:\n  %s" % (mr, ET.tostring(e)))
+    return mem_roles
+    
+def parse_grouping(e):
+    s = Tinker.parse_string(e, "grouping", ET.tostring)
+    ids = Tinker.parse_list_from_string(s)
+    for id in ids:
+        if(not Tinker.is_alphachar(id)):
+            sys.exit("Invalid grouping id \"%s\" found in attribute:\n%s" % (id,ET.tostring(e)))
+    return ids
+
+def parse_ports(e):
+    ports = ["r", "w", "rw"]
+    s = Tinker.parse_string(e,"ports", ET.tostring)
+    mem_ports = Tinker.parse_list_from_string(s)
+    for mp in mem_ports:
+        if(mp not in ports):
+            sys.exit("Invalid port \"%s\" found in ports attribute:\n  %s" % (mp, ET.tostring(e)))
+    return mem_ports
+
+def parse_ratios(e):
+    ratios = ["Quarter", "Half","Full"]
+    s = Tinker.parse_string(e, "ratios", ET.tostring)
+    mem_ratios = Tinker.parse_list_from_string(s)
+    for mr in mem_ratios:
+        if(mr not in ratios):
+            sys.exit("Invalid ratio \"%s\" found in ratios attribute:\n  %s" % (mr, ET.tostring(e)))
+    return mem_ratios
+
+def parse_oct_pins(e):
+    s = Tinker.parse_string(e, "oct_pins", ET.tostring)
+    pins = Tinker.parse_list_from_string(s)
+    for p in pins:
+        if(not Tinker.is_valid_verilog_name(p)):
+            sys.exit("Invalid OCT pin \"%s\" found in oct_pins attribute:\n  %s" % (p, ET.tostring(e)))
+    return pins
+
+def parse_id(e):
+    id = Tinker.parse_string(e, "id", ET.tostring)
+    if(not Tinker.is_alphachar(id)):
+        sys.exit("Invalid ID \"%s\" found in id attribute:\n %s" % (id, ET.tostring(e)))
+    return id

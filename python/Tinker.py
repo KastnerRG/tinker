@@ -38,39 +38,17 @@
 # encapsulates the environment necessary to run the tinker script and generate
 # the custom board-support package necessary for the Altera OpenCL Compiler
 # Author: Dustin Richmond
-import xml.etree.ElementTree as et, math, os
+import xml.etree.ElementTree as ET, math, os
 from xml.dom import minidom
-
-def is_number(n):
-    try:
-        float(n)
-        return True
-    except ValueError:
-        return False            
-
-def is_alphachar(s):
-    return s.isalpha() and len(s) == 1
-
-def match_enum(id, enum):
-    return ((is_alphachar(id) and enum == "alphabetical") or
-        (is_number(id) and enum == "numerical"))
-
-def list_diff(l,cl):
-    return list(set(l) - set(cl))
+import sys, re, json
 
 def prettify(elem):
-    rough_string = et.tostring(elem, 'utf-8')
+    rough_string = ET.tostring(elem, 'utf-8')
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
 
 def clog2(i):
     return math.floor(math.log(i)/math.log(2))
-
-def rate2int(ratio):
-    if(ratio == "single"):
-        return 1
-    elif(ratio == "double"):
-        return 2
 
 def ratio2float(ratio):
     if(ratio =="Full"):
@@ -80,23 +58,30 @@ def ratio2float(ratio):
     if(ratio =="Quarter"):
         return .25
 
-def checkvar(v):
-    if(v not in os.environ):
-        print "ERROR: Environment Variable %s not set",v
-        exit(1)
+def int2ratio(i):
+    if(i == 1):
+        return "Full"
+    if(i == 2):
+        return "Half"
+    if(i == 4):
+        return "Quarter"
+    return "Invalid"
 
-def checkenv():
-    checkvar("TCLXML_PATH")
-    checkvar("TINKER_PATH")
+def check_var(v):
+    if(v not in os.environ):
+        sys.exit("ERROR: Environment Variable %s not set" % v)
+
+def check_env():
+    check_var("TCLXML_PATH")
+    check_var("TINKER_PATH")
 
 def check_path(p):
     if(not os.path.exists(p)):
-        print "ERROR: Path %s does not exist", p
-        exit(1)
+        sys.exit("ERROR: Path %s does not exist" % p)
 
 class Tinker():
     def __init__(self):
-        checkenv()
+        check_env()
         self.path = os.path.expandvars("${TINKER_PATH}") + "/"
         check_path(self.path)
         self.versions = self.parse_versions()
@@ -107,7 +92,7 @@ class Tinker():
     def parse_versions(self):
         p = self.path + "skels/versions.xml"
         check_path(p)
-        r = et.parse(p)
+        r = ET.parse(p)
         versions = []
         for e in r.findall("./release/[@version]"):
             versions.append(e.get("version"))
@@ -124,14 +109,12 @@ class Tinker():
 
     def check_version(self,version):
         if(not self.is_version(version)):
-            print "ERROR: %s is not a valid version" % str(version)
-            exit(1)
+            sys.exit("ERROR: %s is not a valid version" % str(version))
 
     def check_board(self,version, board):
         self.check_version(version)
         if(not self.is_board(version,board)):
-            print "ERROR: %s is not a valid board for version %s" % (str(board), str(version))
-            exit(1)
+            sys.exit("ERROR: %s is not a valid board for version %s" % (str(board), str(version)))
             
     def get_boards(self, version):
         self.check_version(version)
@@ -141,20 +124,26 @@ class Tinker():
         self.check_board(version, board)
         p = self.path + "skels/versions.xml"
         check_path(p)
-        r = et.parse(p)
+        r = ET.parse(p)
         e = r.find("./release/[@version='%s']" % str(version))
         
         p = os.path.expandvars(e.get("path")) + "/" + board +"/"
         return p
         
     def get_board_xml(self,version, board):
-        return self.get_board_path(version,board) +board + ".xml"
+        self.check_version(version)
+        self.check_board(version, board)
+        p = self.get_board_path(version,board)
+        check_path(p)
+        p = p + board + ".xml"
+        check_path(p)
+        return p
     
     def get_board_path(self,version, board):
         self.check_version(version)
         p = self.path + "skels/versions.xml"
         check_path(p)
-        r = et.parse(p)
+        r = ET.parse(p)
         e = r.find("./release/[@version='%s']" % str(version))
         
         p = os.path.expandvars(e.get("path")) + "/" + board +"/"
@@ -169,18 +158,110 @@ class Tinker():
         p = self.path + "skels/versions.xml"
         check_path(p)
         
-        r = et.parse(p)
+        r = ET.parse(p)
         es = r.findall("./release/[@version='%s']" % str(version))
         e = es[0]
         if(len(es) > 1):
-            print "ERROR: Multiple matches for version %s" % str(version)
+            sys.exit("ERROR: Multiple matches for version %s" % str(version))
 
         p = os.path.expandvars(e.get("path")) + "/boards.xml"
         check_path(p)
-        r = et.parse(p)
+        r = ET.parse(p)
         boards = []
         for e in r.iterfind(("./board/[@version='%s']" % version)):
             boards.append(e.get("name"))
         
         return boards
 
+def parse_list_from_string(s):
+    return [e.strip() for e in s.split(",")]
+        
+def parse_string(e, a, ts):
+    s = e.get(a)
+    if(s is None):
+        Tinker.key_error(a, ts(e))
+    return s
+
+def parse_macros(e, ts):
+    m = parse_string(e, "macros", ts)
+    macros = parse_list_from_string(m)
+    for m in macros:
+        if(not is_valid_verilog_name(m)):
+            sys.exit("Invalid macro \"%s\" found in macro attribute:\n  %s" % (m, ts(e)))
+    return macros
+
+def parse_float(e, key, ts):
+    s = parse_string(e, key, ts)
+    try:
+        v = float(s)
+        return v
+    except ValueError:
+        print "In key-value map:"
+        print ts(e)
+        value_error(ks, s, "Real Numbers")
+
+def parse_int(e, key, ts):
+    s = parse_string(e, key, ts)
+    try:
+        v = int(s)
+        return v
+    except ValueError:
+        print "In key-value map:"
+        print ts(e)
+        value_error(ks, s, "Integers")
+
+def is_in_range(v, min, max):
+    return (min <= v <= max)
+
+def is_pow_2(v):
+    """Return true if v is a power of two"""
+    return v != 0 and ((v & (v - 1)) == 0)
+
+def is_alphachar(s):
+    return is_string(s) and s.isalpha() and len(s) == 1
+
+def is_string(s):
+    return isinstance(s, basestring)
+
+
+def is_list(l):
+    return isinstance(l, list)
+
+def is_dict(l):
+    return isinstance(l, dict)
+
+def is_int(l):
+    return isinstance(l, int)
+
+def is_valid_verilog_name(s):
+    if(not is_string(s)
+       or s is ""
+       or s[0].isdigit()
+       or re.match(r'\w+',s) is None):
+        return False
+    return True
+
+def key_error(ks, ds):
+    print "In key-value map:"
+    print ds
+    sys.exit("Error! Key \"%s\" missing" % ks)
+                     
+def value_error(ks, vs, vvs):
+    sys.exit(("Error! Key \"%s\" has invalid value \"%s\". " +
+              "Valid values are: %s")
+              % (ks, vs , vvs))
+
+def value_error_map(ks, vs, vvs, ds):
+    print "In key-value map:"
+    print ds
+    value_error(ks,vs,vvs)
+    
+def tostr_dict(d):
+    return json.dumps(d,indent=2)
+    
+def print_description(d):
+    print tostr_dict(d)
+
+    
+def contains_duplicates(l):
+    len(l) != len(set(l))
