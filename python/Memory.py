@@ -38,16 +38,19 @@
 # Memory architecture
 # Author: Dustin Richmond
 
-# Import Python Utilities
-import xml.etree.ElementTree as ET, math
-from collections import defaultdict
-# Import Tinker Objects
+import xml.etree.ElementTree as ET, math, abc, sys
+from collections import Counter
 import Tinker
-import abc, sys
-from IP import parse_list, parse_string, IP, parse_id, parse_ids
+from IP import IP, parse_list, parse_int
 
 class Memory(IP):
-    _C_KNOWN_TYPES = set(["DDR3", "QDRII", "LOCAL"])
+    _C_LATENCY_RANGE= (1,1000)
+    _C_PORT_TYPES = set(["r", "w", "rw"])
+    _C_RESOURCE_RANGE= (0,10000)
+    _C_CLOCK_RATIOS = []
+    _C_RATIOS = set(["Full", "Half", "Quarter"])
+    _C_ROLES = set(["primary", "secondary", "independent"])
+
     def __init__(self, e):
         """
 
@@ -76,27 +79,47 @@ class Memory(IP):
         
         """
         super(Memory,cls).validate(d)
-        # TODO: A lot more work needs to be done on validation of the board
-        # dictionary
-        pass
-        
-    @abc.abstractmethod
-    def fill(cls, d):
+        cls.check_resources(d)
+        cls.check_latency(d)
+        cls.check_ports(d)
+    
+    @classmethod
+    def parse(cls, e):
         """
-
-        Fill in any missing defaults in a high level description used to
-        configure this object
+        Parse the description of this Memory object from an element tree
+        element and return a dictionary with the parameters
+        found.
 
         Arguments:
 
-        d -- A Description object, containing the possibly incomplete
-        parsed user description of a custom board
+        e -- An element tree element containing the description of this
+        object
         
         """
-        pass
+        d = dict()
+        d["resources"] = cls._parse_resources(e)
+        d["latency"] = parse_int(e, "latency")
+        d["ports"] = cls.parse_ports(e)
+        d["ratios"] = cls.parse_ratios(e)
+        d["roles"] = cls.parse_roles(e)
+        return d
+                
+    def configure(self, d):
+        """
 
-    @abc.abstractmethod
-    def verify(cls, d):
+        Configure this object according to a high level description
+        fill in any missing defaults, and verify that the description
+        can be implemented
+
+        Arguments:
+
+        d -- A Description object, containing the parsed user description
+        of a custom board
+        
+        """
+        super(Memory,self).configure(d)
+        
+    def verify(self):
         """
 
         Verify that this object can implement the high level description
@@ -108,110 +131,79 @@ class Memory(IP):
         of a the IP configuration
         
         """
-        pass
+        self.validate(self)
 
-    @abc.abstractmethod
-    def get_interface(self,s):
-        pass
+    @classmethod
+    def check_ports(cls, d):
+        ports = d.get("ports")
+        if(ports is None):
+            Tinker.key_error("ports", Tinker.tostr_dict(d))
+        for p in ports:
+            if(p not in cls._C_PORT_TYPES):
+                Tinker.value_error_xml("ports", p, str(list(cls._C_PORT_TYPES)),
+                                        Tinker.tostr_dict(d))
+
+    @classmethod
+    def _parse_resources(cls, e):
+        d = Counter()
+        for rt in cls._C_RESOURCE_TYPES:
+            d[rt] = parse_int(e, rt)
+        return d
     
-    @abc.abstractmethod
     def get_macros(self,s):
-        pass
-
+        return []
+    
+    def get_resources(self):
+        self.check_resources(self)
+        return self["resources"]
 
     @classmethod
-    def parse(cls,e):
-        d = dict()
-        d["type"] = "memory"
-        ts = cls.parse_types(e)
-        for se in e.findall("./*"):
-            t = se.tag
-            if(t not in ts):
-                Tinker.key_error(t, ET.tostring(e))
-            td = cls.parse_type(t,se)
-            d[t] = td
-        d["types"] = ts
-        return d
+    def check_latency(cls, d):
+        l = d.get("latency")
+        l_min = cls._C_LATENCY_RANGE[0]
+        l_max = cls._C_LATENCY_RANGE[1]
+        if(l is None):
+            Tinker.key_error("latency", Tinker.tostr_dict(d))
+        if(not Tinker.is_in_range(l, l_min, l_max)):
+            Tinker.value_error_map("latency", str(hex(l)),
+                                   "Range(0x%x, 0x%x)" % (l_min, l_max),
+                                    Tinker.tostr_dict(d))
     
     @classmethod
-    def parse_type(cls,t,e):
-        d = dict()
-        ids = parse_ids(e)
-        ides = e.findall("phy")
-        for ide in ides:
-            pd = cls.construct(t, ide)
-            id = pd["id"]
-            if(id not in ids):
-                Tinker.value_error_xml("id", id, str(ids), ET.tostring(ide))
-            d[id] = pd
-        default = parse_default(e)
-        d["default"] = default
-        return d
-
-    @classmethod
-    def validate_type(cls,d):
-        check_default(d)
-
-    @classmethod
-    def construct(cls, t, e):
-        if(t == "DDR3"):
-            import DDR
-            return DDR.DDR(e)
-        elif(t == "QDRII"):
-            import QDR
-            return QDR.QDR(e)
-        elif(t == "LOCAL"):
-            import LOCAL
-            return LOCAL.LOCAL(e)
-        
-    @classmethod
-    def parse_types(cls,e):
-        ts = parse_list(e,"types")
-        for t in ts:
-            if(t not in cls._C_KNOWN_TYPES):
-                Tinker.value_error("Types", t, cls._C_KNOWN_TYPES, ET.tostring(e))
-        return ts
-
-def check_default(d):
-    default = d["default"]
-    if(default not in d.keys()):
-        Tinker.key_error_xml("default", ET.tostring(e))
+    def check_resources(cls, d):
+        rs = d.get("resources")
+        r_min = cls._C_RESOURCE_RANGE[0]
+        r_max = cls._C_RESOURCE_RANGE[1]
+        for rt in cls._C_RESOURCE_TYPES:
+            r = rs.get(rt, None)
+            if(r is None):
+                Tinker.key_error(rt, Tinker.tostr_dict(d))
+            if(not Tinker.is_in_range(r, r_min, r_max)):
+                Tinker.value_error_map(rt, str(hex(r)),
+                                       "Range(0x%x, 0x%x)" % (r_min, r_max),
+                                       Tinker.tostr_dict(d))
     
-def parse_default(e):
-    id = parse_string(e, "default")
-    if(not Tinker.is_alphachar(id)): # TODO: Valid ID
-        Tinker.value_error_xml("default", id, "Alphanumeric Characters",
-                               ET.tostring(e))
-    return id
+    @classmethod
+    def parse_ports(cls, e):
+        mem_ports = parse_list(e,"ports")
+        for mp in mem_ports:
+            if(mp not in cls._C_PORT_TYPES):
+                Tinker.value_error_xml("ports", mp, str(ports), ET.tostring(e))
+        return mem_ports
 
-def parse_ports(e):
-    ports = ["r", "w", "rw"]
-    mem_ports = parse_list(e,"ports")
-    for mp in mem_ports:
-        if(mp not in ports):
-            Tinker.value_error_xml("ports", mp, str(ports), ET.tostring(e))
-    return mem_ports
+    @classmethod
+    def parse_ratios(cls, e):
+        mem_ratios = parse_list(e, "ratios")
+        for mr in mem_ratios:
+            if(mr not in cls._C_RATIOS):
+                Tinker.value_error_xml("ratios", mr, str(ratios), ET.tostring(e))
+        return mem_ratios
 
-def parse_ratios(e):
-    ratios = ["Quarter", "Half","Full"]
-    mem_ratios = parse_list(e, "ratios")
-    for mr in mem_ratios:
-        if(mr not in ratios):
-            Tinker.value_error_xml("ratios", mr, str(ratios), ET.tostring(e))
-    return mem_ratios
+    @classmethod
+    def parse_roles(cls, e):
+        roles = parse_list(e, "roles")
+        for mr in roles:
+            if(mr not in cls._C_ROLES):
+                Tinker.value_error_xml("roles", mr, str(roles), ET.tostring(e))
+        return roles
 
-def parse_roles(e):
-    mem_roles = set(["primary", "secondary", "independent"])
-    roles = parse_list(e, "roles")
-    for mr in roles:
-        if(mr not in mem_roles):
-            Tinker.value_error_xml("roles", mr, str(roles), ET.tostring(e))
-    return roles
-
-def parse_grouping(e):
-    ids = parse_list(e, "grouping")
-    for id in ids:
-        if(not Tinker.is_alphachar(id)): # TODO: Valid ID
-            Tinker.value_error_xml("grouping", id, "Alphanumeric Characters",
-                                   ET.tostring(e))
-    return ids

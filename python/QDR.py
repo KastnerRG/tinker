@@ -42,8 +42,8 @@ import xml.etree.ElementTree as ET
 from IP import parse_int
 class QDR(Phy.Phy):
     _C_BURST_WIDTHS = range(1,5)
-    _C_BURST_DEFAULT = 1
-    _C_CLOCK_RATIOS = ["Half", "Quarter", "Full"]
+    _C_BURST_DEFAULT = 4
+    _C_CLOCK_RATIOS = set(["Half", "Full"])
     _C_RATE = 2 # Double Data Rate (Not Quad. Thanks, Marketing)
     def __init__(self, e):
         super(QDR,self).__init__(e)
@@ -67,7 +67,7 @@ class QDR(Phy.Phy):
     def parse(self,e):
         """
         Parse the description of this IP object from an element tree
-        element and return a defaultdictionary with the parameters
+        element and return a dictionary with the parameters
         found.
 
         Arguments:
@@ -77,24 +77,27 @@ class QDR(Phy.Phy):
         
         """
         d = super(QDR,self).parse(e)
+        d["type"] = "QDRII"
         pow2_dq_pins = d["pow2_dq_pins"]
 
         address_pins = parse_int(e, "address_pins")
-        burst = parse_int(e, "burst")
+        phyburst = parse_int(e, "phyburst")
 
-        size = pow2_dq_pins/8 * (2**address_pins) * burst
+        size = pow2_dq_pins/8 * (2**address_pins) * phyburst
         d["size"] = int(size)
 
         return d
     
-    def get_interface(self, sid, verbose=False):
-        r = super(QDR,self).get_interface(verbose=specification)
-        i.set("latency","150") # Standard, recommended by Altera
-        r_attrib = {"name": "kernel_%s_if_%s_r" % (sid,id),
-                    "direction":"r"}
-        ET.SubElement(i,"port",attrib=r_attrib)
-        w_attrib = {"name": "kernel_%s_if_%s_w" % (sid,id),
-                    "direction":"w"}
-        ET.SubElement(i,"port",attrib=w_attrib)
-        return i
-
+    def get_interface_element(self, sid, version, verbose):
+        self.validate(self)
+        e = super(QDR,self).get_interface_element(sid, version, verbose)
+        e.set("size", str(hex(self["size"])))
+        
+        ra = {"name":"kernel_%s_if_%s_r" % (sid, self["id"]), "direction":"r"}
+        re = ET.Element("port",attrib=ra)
+        e.append(re)
+        
+        wa = {"name":"kernel_%s_if_%s_w" % (sid, self["id"]), "direction":"w"}
+        we = ET.Element("port",attrib=wa)
+        e.append(we)
+        return e

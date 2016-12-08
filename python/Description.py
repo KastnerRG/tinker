@@ -41,9 +41,10 @@
 import json, sys
 from collections import defaultdict
 import Interface, GlobalMemoryInterface, Tinker
+from collections import Counter
 class Description(dict):
     _C_DESCRIPTION_KEYS = set(["name", "interfaces"])
-    def __init__(self, depath):
+    def __init__(self, depath, board):
         """Construct a Description Object
 
         Arguments:
@@ -59,9 +60,11 @@ class Description(dict):
         d = self.parse(d)
         self.validate(d)
         self.update(d)
+        self.__b = board
+        self.implement(board)
         
     @classmethod
-    def parse(cls, d):
+    def parse(cls, desc):
         """
         
         Parse the description of this IP object from a dictionary
@@ -72,18 +75,127 @@ class Description(dict):
         d -- A dictionary with the parameters for this Description object
         
         """
-        dp = dict()
-        cls.parse_keys(d)
-        n = cls.parse_name(d)
-        dp["name"] = n
-        ifs = cls.parse_interfaces(d)
-        dp["interfaces"] = ifs
+        d = dict()
+        cls.parse_keys(desc)
+        n = cls.parse_name(desc)
+        d["name"] = n
+        ifs = cls.parse_interfaces(desc)
+        d["interfaces"] = ifs
         for i in ifs:
-            c = Interface.construct(i)
-            dp[i] = c(d[i])
-        return dp
+            d[i] = Interface.construct(i)(desc[i])
+        if("Kernel" not in ifs):
+            ifs.append("Kernel")
+            d["Kernel"] = Interface.construct("Kernel")({"type":"Kernel"})
 
-    def validate(cls, d):
+        if("Host" not in ifs):
+            ifs.append("Host")
+            d["Host"] = Interface.construct("Host")({"type":"Host"})
+        return d
+
+    def validate(self, d):
+        """
+
+        Validate the parameters of a Description object
+
+        Arguments:
+
+        d -- A Description object, containing the parsed user description
+        of a custom board
+        
+        """
+
+    def implement(self, b):
+        """
+
+        Implement this object using the IP provided by a board object
+
+        Arguments:
+
+        b -- A Board object, containing parsed description of a custom
+        board
+        
+        """
+        self.validate(self)
+        for i in self["interfaces"]:
+            self[i].implement(b["IP"])
+        self.__configure()
+        self.verify()
+
+    def get_global_mem_elements(self, version, verbose):
+        self.verify()
+        l = []
+        for i in self["interfaces"]:
+            l += self[i].get_global_mem_elements(version, verbose)
+        return l
+            
+    def get_resources(self, version, verbose):
+        self.verify()
+        r = Counter({"alms":0, "ffs":0, "rams":0, "dsps":0})
+        for i in self["interfaces"]:
+            ri = self[i].get_resources(version, verbose)
+            r =  r + ri
+            
+        return Counter({"alms":0, "ffs":0, "rams":0, "dsps":0})
+            
+    def get_interface_elements(self, version, verbose):
+        self.verify()
+        l = []
+        for i in self["interfaces"]:
+            l += self[i].get_interface_elements(version, verbose)
+        return l
+                
+    def get_host_elements(self, version, verbose):
+        self.verify()
+        l = []
+        for i in self["interfaces"]:
+            l += self[i].get_host_elements(version, verbose)
+        return l
+            
+    def get_pin_elements(self, version, verbose):
+        # TODO: Get version from board
+        self.verify()
+        l = []
+        for i in self["interfaces"]:
+            l += self[i].get_pin_elements(version, verbose)
+        return l
+
+    def get_macros(self, version, verbose):
+        l = []
+        for i in self["interfaces"]:
+            l += self[i].get_macros(version, verbose)
+        return l
+    
+    def __configure(self):
+        """
+
+        Perform any final, object-specific configurations during implementation
+
+
+        Arguments:
+
+        d -- A Description object, containing the complete description
+        of a the IP configuration
+        
+        """
+        
+    def verify(self):
+        """
+
+        Verify that this object can implement the high level description
+
+
+        Arguments:
+
+        d -- A Description object, containing the complete description
+        of a the IP configuration
+        
+        """
+        for i in self["interfaces"]:
+            self[i].verify()
+        # TODO: Verify top-level
+        pass
+    
+    def validate(self, d):
         """
 
         Validate the parameters that describe the intrinsic settings of
@@ -96,12 +208,6 @@ class Description(dict):
         
         """
         pass
-
-    def gete(self, k):
-        super(Description,self).get(k, None)
-        ifs = self.get("interfaces",None)
-        if(ifs is None):
-            Tinker.key_error("interfaces",str(d))
 
     @classmethod
     def parse_name(cls, d):
@@ -136,3 +242,5 @@ class Description(dict):
             if(d.get(i,None) is None):
                 Tinker.key_error(i,str(d))
         return ifs
+
+    

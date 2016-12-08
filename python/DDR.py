@@ -69,7 +69,7 @@ class DDR(Phy.Phy):
     def parse(cls,e):
         """
         Parse the description of this IP object from an element tree
-        element and return a defaultdictionary with the parameters
+        element and return a dictionary with the parameters
         found.
 
         Arguments:
@@ -79,6 +79,7 @@ class DDR(Phy.Phy):
         
         """
         d = super(DDR,cls).parse(e)
+        d["type"] = "DDR3"
         pow2_dq_pins = d["pow2_dq_pins"]
 
         bank_pins = parse_int(e, "bank_pins")
@@ -90,8 +91,9 @@ class DDR(Phy.Phy):
 
         return d
 
-    def get_interface(self, sid, verbose=False):
-        i = super(DDR,self).get_interface(verbose=verbose)
-        i.set("port","kernel_%s_if_%s_rw" % (sid,self["id"]))
-        i.set("latency","240") # Standard, recommended by Altera
-        return i
+    def get_interface_element(self, sid, version, verbose):
+        self.validate(self)
+        e = super(DDR,self).get_interface_element(sid, version, verbose)
+        e.set("size", str(hex(self["size"])))
+        e.set("port","kernel_%s_if_%s_rw" % (sid,self["id"]))
+        return e

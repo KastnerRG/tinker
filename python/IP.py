@@ -40,12 +40,11 @@
 
 # Import Python Utilities
 import xml.etree.ElementTree as ET
-from collections import defaultdict
-from Resources import Resources
-import abc
+import abc, sys
 import Tinker
 
 class IP(dict):
+    _C_RESOURCE_TYPES = set(["alms", "ffs", "rams", "dsps"])
     def __init__(self, e):
         """
         Construct a generic IP object that encapsulates a dictionary
@@ -59,12 +58,36 @@ class IP(dict):
         d = self.parse(e)
         self.validate(d)
         self.update(d)
+        self.__is_claimed = False
+
+    def __claim(self):
+        if(self.__is_claimed):
+            #TODO: IP must be constructed with type
+            sys.exit("Error: IP has already been" % self["type"]
+                     +" claimed")
+        self.__is_claimed = True
+        
+    def configure(self, d):
+        """
+
+        Configure this object according to a high level description
+        fill in any missing defaults, and verify that the description
+        can be implemented
+
+        Arguments:
+
+        d -- A Description object, containing the parsed user description
+        of a custom board
+        
+        """
+        self.__claim()
+        self.validate(self)
 
     @abc.abstractmethod
     def parse(cls, e):
         """
         Parse the description of this IP object from an element tree
-        element and return a defaultdictionary with the parameters
+        element and return a dictionary with the parameters
         found.
 
         Arguments:
@@ -89,15 +112,6 @@ class IP(dict):
         """
         pass
 
-    # Methods called when creating a specification
-    @abc.abstractmethod
-    def apply(self, e):
-        pass
-
-    @abc.abstractmethod
-    def fill(self, d):
-        pass
-
     @abc.abstractmethod
     def verify(cls, d):
         """
@@ -114,16 +128,18 @@ class IP(dict):
         pass
 
     @abc.abstractmethod
-    def get_interface(self,s): # TODO: interfaceS?
-        pass
-
-    @abc.abstractmethod
     def get_macros(self,s):
-        pass
+        return []
 
-def construct(cls, e):
-    import Memory
-    return Memory.Memory(e)
+def construct(e):
+    t = e.tag
+    if(t == "memory"):
+        import Memory
+        return Memory.Memory(e)
+    else:
+        print "In XML Element:"
+        print ET.tostring(e)
+        sys.exit("Unknown IP Type %s" % t)
     
 def parse_string(e, k):
     s = e.get(k)
@@ -160,13 +176,6 @@ def parse_id(e):
         value_error_xml("id", id, "Alphanumeric Characters", ET.tostring(e))
     return id
 
-def parse_ids(e):
-    ids = parse_list(e,"ids")
-    for id in ids:
-        if(not Tinker.is_alphachar(id)):
-            value_error_xml("ids", id, "Alphanumeric Characters", ET.tostring(e))
-    return ids
-
 def parse_macros(e):
     macros = parse_list(e, "macros")
     for m in macros:
@@ -174,3 +183,32 @@ def parse_macros(e):
             Tinker.value_error_xml("macros", m, "Valid Verilog Names",
                                    ET.tostring(e))
     return macros
+
+def find(r, p):
+    e = r.find("./%s" % p)
+    if(e == None):
+        Tinker.path_error_xml(p, ET.tostring(r))
+    return es
+
+def findall(r, t):
+    es = r.findall("./%s" % t)
+    if(len(es) == 0):
+        Tinker.path_error_xml(t, ET.tostring(r))
+    return es
+        
+def findsingle(r, t):
+    es = findall(r, t)
+    if(len(es) > 1):
+        print "In XML Element:"
+        print ET.tostring(r)
+        sys.exit("Multiple subelements with Tag %s found" % t)
+    return es[0]
+
+def findunique(r, t):
+    es = findall(r, t)
+    if(Tinker.contains_duplicates([e.tag for e in es])):
+        print "In XML Element:"
+        print ET.tostring(r)
+        sys.exit("Subelements with matching Tags found. Tags must be unique")
+    return es
+

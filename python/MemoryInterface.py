@@ -3,7 +3,7 @@ import Interface, Tinker
 import sys
 from Interface import *
 class MemoryInterface(Interface):
-    _C_INTERFACE_KEYS = set(["role","master"])
+    _C_INTERFACE_KEYS = set(["role","master", "burst", "ratio"])
     _C_INTERFACE_TYPES = ["DDR3","QDRII"]
     _C_INTERFACE_ROLES = ["primary", "secondary", "independent"]
     def __init__(self, desc):
@@ -74,11 +74,11 @@ class MemoryInterface(Interface):
         of a custom board
         
         """
-        self.__fill(d)
-        self.validate(d)
-        pass
+        self.validate(self)
+        b.configure(self)
+        self["IP"] = b
 
-    def __fill(self, d):
+    def __configure(self):
         """
 
         Fill in any missing defaults in a high level description used to
@@ -92,7 +92,7 @@ class MemoryInterface(Interface):
         """
         pass
 
-    def verify(self, d):
+    def verify(self):
         """
 
         Verify that this object can implement the high level description
@@ -104,6 +104,7 @@ class MemoryInterface(Interface):
         of a the IP configuration
         
         """
+        self["IP"].verify()
         pass
     
 

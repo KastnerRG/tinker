@@ -32,6 +32,7 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 # ----------------------------------------------------------------------
+import xml.etree.ElementTree as ET
 import DDR, QDR
 import Tinker, GroupMemoryInterface
 import sys
@@ -40,8 +41,7 @@ class GlobalMemoryInterface(Interface):
     _C_INTERFACE_KEYS = set(["interfaces", "type"])
     _C_INTERFACE_TYPES = set(["DMA"])
     _C_INTERFACE_ROLES = set(["primary", "secondary"])
-
-    # TODO: minimum size requirement too
+    _C_INTERFACE_SIZE_RANGE = (1<<17, 1<<64)
     def __init__(self, desc):
         """Construct a generic Interface Object
 
@@ -70,7 +70,7 @@ class GlobalMemoryInterface(Interface):
         d["interfaces"] = cls.parse_interfaces(desc)
         d["quantity"] = cls.parse_quantity(desc)
         for i in d["interfaces"]:
-            d[i] = GroupMemoryInterface.GroupMemoryInterface(desc[i])
+            d[i] = GroupMemoryInterface.GroupMemoryInterface(desc[i], i)
         return d
             
     @classmethod
@@ -128,11 +128,12 @@ class GlobalMemoryInterface(Interface):
         of a custom board
         
         """
-        self.__fill(b)
-        self.validate(b)
-        self.verify(self)
+        self.validate(self)
+        for i in self["interfaces"]:
+            self[i].implement(b["memory"])
+        self.__configure()
 
-    def __fill(self, d):
+    def __configure(self):
         """
 
         Fill in any missing defaults in a high level description used to
@@ -144,10 +145,48 @@ class GlobalMemoryInterface(Interface):
         parsed user description of a custom board
         
         """
-        pass
+        base = 0
+        size = 0
+        for i in self["interfaces"]:
+            self[i].check_size(self[i])
+            sz = self[i]["size"]
+            size += sz
+            rem = 0
+            if(base % sz != 0):
+                rem = sz - (base % sz)
+            base += rem
+            self[i].set_base_address(base)
+            base += sz
+            
+        self["size"] = size
 
-    @classmethod
-    def verify(cls, d):
+        # Default to min frequency to meet timing
+        min_freq = None
+        min_id = None
+        size = 0
+        # TODO: Names for Memory Interfaces (must be less than 32 char)
+        # Must have at least 128 KB of memory
+        for i in self["interfaces"]:
+            self[i].check_frequency(self[i])
+            f = self[i]["freq_mhz"]
+            if(min_freq is None or f < min_freq):
+                min_freq = f
+                min_id = i
+                
+        n = 0
+        for i in self["interfaces"]:
+            if(i == min_id):
+                self['primary'] = i
+                self[i].set_role("primary")
+                self[i].set_config_addr(0x18)
+            else:
+                self[i].set_role("secondary")
+                self[i].set_config_addr(0x100 + n * 0x18)
+                n +=1 
+            
+        #TODO: Configuration address
+
+    def verify(self):
         """
 
         Verify that this object can implement the high level description
@@ -159,8 +198,22 @@ class GlobalMemoryInterface(Interface):
         of a the IP configuration
         
         """
-        #TODO: Role must be completely specified by the time implementation happens
-        pass
+        self.check_interfaces(self)
+        self.check_quantity(self)
+        self.check_roles(self)
+        self.check_size(self)
+
+    @classmethod
+    def check_size(cls, d):
+        sz = d.get("size")
+        sz_min = cls._C_INTERFACE_SIZE_RANGE[0]
+        sz_max = cls._C_INTERFACE_SIZE_RANGE[1]
+        if(sz is None):
+            Tinker.key_error("size", Tinker.tostr_dict(d))
+        if(not Tinker.is_in_range(sz, sz_min, sz_max)):
+            Tinker.value_error_map("size", str(hex(sz)),
+                                   "Range(0x%x, 0x%x)" % (sz_min, sz_max),
+                                    Tinker.tostr_dict(d))
 
     @classmethod
     def parse_quantity(cls, desc):
@@ -209,41 +262,30 @@ class GlobalMemoryInterface(Interface):
             parse_dict(d,i)
             d[i].validate(d[i])
 
-    def build_spec(self,spec, n, base, specification=False):
-        s = spec.get_info()
-        r = ET.Element("global_mem", attrib={"name": self.info["type"] + "_" + str(n)})
-
-        burst = s[n].get("Burst","16")
-        
-        if0 = s[n]["interfaces"][0]
-        width = int(1/(Tinker.ratio2float(s[n]["Ratio"])) * self.info[if0]["pow2_dq_pins"] * self.info[if0]["clock_ratio"])
-        intbytes = int(burst) * width / 8
-        r.set("interleaved_bytes", str(intbytes))
-        if(n == "0"):
-            r.set("config_addr", "0x018")
-            if(specification): # Reintroduce in 15.1
-                r.set("default","1")
-        else:
-            r.set("config_addr", hex(int("0x100",16) + (int(n)-1) * int("0x18",16)))
-
-        size = 0
-        bandwidth = 0
-        for id in s[n]["interfaces"]:
-            bandwidth += self.info[id]["bandwidth_bs"]
-            i = self.ifs[id]
-            e = i.build_spec(spec,n,id,base+size,burst,width,specification=specification)
-            size += int(s[n][id]["Size"],16)
-            r.append(e);
-        
-        r.set("max_bandwidth", str(int(bandwidth)/1000000))
-        if(specification):
-            r.set("base_address",hex(base))
-            r.set("quantity",str(len(s[n]["interfaces"])))
-            r.set("width",str(width))
-            r.set("sys_id",str(n))
-            r.set("type",s[n]["type"])
-            r.set("maxburst",str(burst))
-            r.set("addr_width",str(int(math.log(size,2))))
-            r.set("role",s[n]["Role"])
-        return r
+    def get_macros(self, version, verbose):
+        l = []
+        for i in self["interfaces"]:
+            l += self[i].get_macros(version, verbose)
+        return l
     
+    def get_pin_elements(self, version, verbose):
+        l = []
+        for i in self["interfaces"]:
+            l += self[i].get_pin_elements(version, verbose)
+        return l
+        
+    def get_global_mem_elements(self, version, verbose):
+        l = []
+        for i in self["interfaces"]:
+            l += [self[i].get_global_mem_element(version, verbose)]
+        return l
+
+    def get_interface_elements(self, version, verbose):
+        pid = self["primary"]
+        # TODO: Check primary
+        return self[pid].get_interface_elements(version, verbose)
+                
+        # TODO: Else, Error
+        
+    def get_host_elements(self, version, verbose):
+        return []

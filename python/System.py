@@ -32,73 +32,41 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 # ----------------------------------------------------------------------
-import abc, sys
-import Interface
-class HostInterface(Interface.Interface):
-    _C_INTERFACE_KEYS = set(["type"])
-    def __init__(self, desc):
-        """Construct a generic Interface Object
-
-        Arguments:
-
-        d -- a dictionary describing the attributes of the interface
-
-        """
-        super(HostInterface,self).__init__(desc)
-
-    def parse(cls, desc):
-        """
+import abc
+import xml.etree.ElementTree as ET
+import Tinker
+class System(ET.ElementTree):
+    def __init__(self, tinker, board, description):
+        # TODO: Put Qsys file in de5net board?
+        self.__t = tinker
         
-        Parse the description of this IP object from an dictionary
-        return a defaultdictionary built from the key-value pairs.
-
-        Arguments:
-
-        e -- An element tree element containing the description of this
-        object
+        self.__b = board
         
-        """
-        d = super(HostInterface,cls).parse(desc)
-        return d
+        self.__d = description
+        p = tinker.get_path_skel()
+        # TODO: System.qsys should be named in board file
+        super(System,self).__init__(file=p + "system.qsys")
 
-    def validate(cls, d):
-        """
-
-        Validate the parameters that describe the intrinsic settings of
-        this Interface
-
-        Arguments:
-
-        d -- A Description object, containing the parsed user description
-        of a custom board
+    def write(self, p):
+        Tinker.check_path(p)
+        p += "/" + "system.qsys"
+        Tinker.check_path(p)
+        r = self.getroot()
+        ifs = self.__d.get_pin_elements(self.__b["version"], False)
+        for i in ifs:
+            r.append(i)
+        super(System, self).write(p, encoding="UTF-8", xml_declaration=True)
         
-        """
-        pass
+    # TODO: Write, or get?
+    def generate_macros(self, spec):
+        return self.__d.get_macros()
 
-    def implement(self, b):
-        """
+    # TODO: Write or get?
+    def generate_qsys(self, spec, sysxml):
+        sysroot = ET.parse(sysxml).getroot()
 
-        Implement the Interface described by this object using the Board
-        object describing the IP available on this board. 
-
-        Arguments:
-
-        d -- A Description object, containing the parsed user description
-        of a custom board
-        
-        """
-        pass
-
-    def verify(self):
-        """
-
-        Verify that this object can implement the high level description
-
-
-        Arguments:
-
-        d -- A Description object, containing the complete description
-        of a the IP configuration
-        
-        """
-        pass
+        ifs = self.__d.get_pin_interfaces()
+        for i in ifs:
+            sysroot.append(i)
+            
+        return sysroot

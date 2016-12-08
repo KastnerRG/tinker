@@ -38,11 +38,11 @@
 # available on the board
 # Author: Dustin Richmond
 
-from collections import defaultdict
 import abc, sys
 import Tinker
-class Interface(defaultdict):
-    _C_INTERFACE_TYPES = ["GlobalMemory", "Host"]
+from collections import Counter
+class Interface(dict):
+    _C_INTERFACE_TYPES = ["GlobalMemory", "Host", "Kernel"]
     _C_INTERFACE_QUANTITY_RANGE = (1, 10)
     def __init__(self, desc):
         """Construct a generic Interface Object
@@ -63,7 +63,7 @@ class Interface(defaultdict):
         """
         
         Parse the description of this IP object from an dictionary
-        return a defaultdictionary built from the key-value pairs.
+        return a dictionary built from the key-value pairs.
 
         Arguments:
 
@@ -95,16 +95,14 @@ class Interface(defaultdict):
     def implement(self, b):
         """
 
-        Implement the Interface described by this object using the Board
-        object describing the IP available on this board. 
+        Implement this object using the IP provided by a board object
 
         Arguments:
 
-        d -- A Description object, containing the parsed user description
-        of a custom board
+        b -- A Board object, containing parsed description of a custom
+        board
         
         """
-        self.__fill(d)
         self.validate(d)
         pass
 
@@ -192,6 +190,25 @@ class Interface(defaultdict):
             Tinker.print_description(desc)
             sys.exit("Error! Unknown keys: %s" % str(list(err)))
         return k | ifs
+    
+    def get_pin_elements(self, version, verbose):
+        return []
+        
+    def get_global_mem_elements(self, version, verbose):
+        return []
+        
+    def get_interface_elements(self, version, verbose):
+        return []
+    
+    def get_host_elements(self, version, verbose):
+        return []
+
+    def get_macros(self, version, verbose):
+        return []
+    
+    def get_resources(self, version, verbose):
+        r = Counter({"alms":0, "ffs":0, "rams":0, "dsps":0})
+        return r
 
 def parse_list(d, k):
     l = d.get(k)
@@ -227,11 +244,13 @@ def parse_int(d, k):
         Tinker.value_error_map(k, i, "Integers", Tinker.tostr_dict(d))
 
 def construct(t):
-    import GlobalMemoryInterface, HostInterface
+    import GlobalMemoryInterface, HostInterface, KernelInterface
     if(t == "GlobalMemory"):
         return GlobalMemoryInterface.GlobalMemoryInterface
     elif(t == "Host"):
         return HostInterface.HostInterface
+    elif(t == "Kernel"):
+        return KernelInterface.KernelInterface
     else:
         Tinker.value_error("interfaces", str(t), str(Interface._C_INTERFACE_TYPES))
     

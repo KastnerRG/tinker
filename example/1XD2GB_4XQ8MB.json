@@ -1,0 +1,19 @@
+{"name":"1XD2GB_4XQ8MB",
+ "interfaces":["GlobalMemory"],
+ "GlobalMemory":{
+     "type":"DMA",
+     "interfaces":["0","1"],
+     "0":{"type":"DDR3",
+	  "quantity":"1",
+	  "burst":"4"
+	 },
+     "1":{"type":"QDRII",
+	  "interfaces":["a","b","c","d"],
+	  "a": {"role":"secondary"},
+	  "b": {"role":"primary"},
+	  "c": {"role":"secondary"},
+	  "d": {"role":"independent", 
+		"master":"b"}
+	 }
+ }
+}

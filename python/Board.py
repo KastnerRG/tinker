@@ -38,64 +38,91 @@
 # necessary to create a custom board for the Altera OpenCL Compiler
 # Author: Dustin Richmond
 
-# Import Python Utilities
-import xml.etree.ElementTree as ET, math
-from collections import defaultdict, Counter
-# Import Tinker Objects
-import Memory, Tinker, IP
+import xml.etree.ElementTree as ET, sys
+import Tinker, MemoryType
+from IP import parse_float, parse_int, parse_string, parse_list, findsingle
 
-
-class Board(defaultdict):
-    def __init__(self, version, board):
-        p = Tinker.Tinker().get_board_xml(version, board)
-        et = ET.parse(p)
-        self.types = {}
-        self.update(self.parse(et))
-    def get_info(self):
-        return self.info;
-    
-    # TODO: Integrate into the print function
-    def print_info(self,l):
-        print self
-            
-    # verify that the high level specification can be implemented on the board
-    def verify(self, s):
-        pass
-
-    # Fill out the high level specification using defaults from the board
-    def fill(self, s):
-        pass
+class Board(dict):
+    def __init__(self, tinker):
+        self.__t = tinker
+        et = ET.parse(self.__t.get_path_skel_xml())
+        d = self.__parse(et)
+        self.__verify(d) 
+        self.update(d)
         
-    def parse(self, et):
+    def __verify(self,d):
+        # TODO: 
+        pass
+    
+    def __str__(self):
+        return json.dumps(self, indent=2)
+                    
+    def __parse(self, et):
         r = et.getroot()
         d = self.__parse_board_elem(r)
-        d.update(self.__parse_ip(r))
+        e = findsingle(r, "IP")
+        d["IP"] = self.__parse_ip(e)
+
+        e = findsingle(r, "compile")
+        d["compile"] = self.__parse_compile(e)
+        
+        d.update()
         return d
 
     def __parse_board_elem(self, e):
-        d = defaultdict()
-        # TODO: How do we handle verification/checking and mal-formed/missing errors?
-        d["version"] = IP.parse_float(e,"version")
-        d["name"] = IP.parse_string(e,"name")
-        d["model"] = IP.parse_string(e,"model")
+        d = dict()
+        d["version"] = parse_float(e,"version")
+        d["name"] = parse_string(e,"name")
+        d["model"] = parse_string(e,"model")
         return d
-
-    def __parse_ip(self, r):
-        d = defaultdict()
-        for (t, td) in self.__parse_ip_types(r):
-            d.update(td)
+        
+    def __parse_compile(self, e):
+        d = dict()
+        d["qsys_file"] = parse_string(e, "qsys_file")
+        d["project"] = parse_string(e, "project")
+        d["revision"] = parse_string(e, "revision")
+        d["auto_migrate"] = self.__parse_automigrate(e)
         return d
-
-    def __parse_ip_types(self, r):
-        ts = set([e.tag for e in r.findall("./")])
-        for t in ts:
-            yield (t, self.__parse_ip_type(r, t))
-                        
-    def __parse_ip_type(self, r, t):
-        d = defaultdict()
-        d["IP"] = defaultdict()
-        for te in r.findall("./%s" % t):
-            ip = IP.construct(t, te)
-            d["IP"][ip["type"]] = ip
+        
+    def __parse_automigrate(self, e):
+        ea = findsingle(e, "auto_migrate")
+        d = dict()
+        d["platform_type"] = parse_string(ea, "platform_type")
+        ei = findsingle(ea, "include")
+        d["include"] = parse_string(ei, "fixes")
+        ee = findsingle(ea, "exclude")
+        d["exclude"] = parse_string(ee, "fixes")
         return d
     
+    def __parse_ip(self, e):
+        d = dict()
+        d["types"] = parse_list(e, "types")
+        for t in d["types"]:
+            se = findsingle(e, t)
+            if(t == "memory"):
+                d[t] = MemoryType.MemoryType(se)
+        return d
+            
+    def get_compile_element(self):
+        e = ET.Element("compile",
+                       attrib={"project":self["compile"]["project"],
+                               "revision":self["compile"]["revision"],
+                               "qsys_file":self["compile"]["qsys_file"],
+                               "generic_kernel":"1"})
+        gena = {"cmd":"qsys-generate --synthesis=VERILOG %s"
+                % self["compile"]["qsys_file"]}
+        ET.SubElement(e,"generate", attrib=gena)
+        syna= {"cmd":"quartus_sh --flow compile %s -c %s" %
+               (self["compile"]["project"], self["compile"]["revision"])}
+        ET.SubElement(e,"synthesis", attrib=syna)
+        am = ET.SubElement(e,"auto_migrate",
+                           attrib={"platform_type":
+                                   self["compile"]["auto_migrate"]["platform_type"]})
+        ET.SubElement(am,"include",
+                      attrib={"fixes":
+                              self["compile"]["auto_migrate"]["include"]})
+        ET.SubElement(am,"exclude",
+                      attrib={"fixes":
+                              self["compile"]["auto_migrate"]["exclude"]})
+        
+        return e

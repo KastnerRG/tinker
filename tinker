@@ -40,11 +40,12 @@
 # Author: Dustin Richmond
 
 # Import Python Utilities
-import os, shutil, xml.etree.ElementTree as et, argparse as ap, sys as System
+import os, shutil, xml.etree.ElementTree as et, argparse as ap
+import sys
 import json
 from xml.dom import minidom
 # Import Tinker Objects
-import Tinker, Board, Description
+import Tinker, Board, Description, Specification, System, Top
 
 def buildargs(par):
     par.add_argument("-l", "--list-boards", action="store_true",
@@ -55,6 +56,9 @@ def buildargs(par):
                     metavar=("<path-to-specification>","<version>","<board_name>"),
                     help="Generate a Board Support Package (BSP) using"+
                     "the specification within the text file")
+    par.add_argument("-o", "--output_path", action="store",
+                    help="Output path for the generated board",
+                    default=os.getcwd())
     
 def list_boards(tinker):
     versions = tinker.get_versions()
@@ -66,7 +70,7 @@ def list_boards(tinker):
     version = ""
     name = ""
     for version in versions:
-        boards = tinker.get_boards(version)
+        boards = tinker.get_boards_version(version)
         print "Boards available for %s:" % version
         for board in boards:
             print "\t" + board + " ",
@@ -77,72 +81,55 @@ def list_boards(tinker):
     print "\tboardgen -i %s %s" % (version,name)
 
 def main():
-    tinker = Tinker.Tinker()
     par = ap.ArgumentParser(description="Generate a Board Support Package for Altera's OpenCL Compiler")
     buildargs(par)
     args = par.parse_args()
 
     if(args.list_boards):
+        tinker = Tinker.Tinker()
         list_boards(tinker)
         
     elif(args.get_board_info):
         version = args.get_board_info[0]
         board = args.get_board_info[1]
+        tinker = Tinker.Tinker(version=version, board=board)
         tinker.check_board(version, board)
         
         print "Getting Info for Version: %s, Board: %s" % (version, board)
-        s = Board.Board(version, board)
-        print json.dumps(s, indent = 4)
+        print json.dumps(Board.Board(t, version, board), indent = 2)
         
     elif(args.generate):
         path = args.generate[0]
         version = args.generate[1]
         board = args.generate[2]
-        tinker.check_board(version, board)
-
-        # p = Package(path, version, board)
-        s = Description.Description(path)
-        print json.dumps(s,indent=2)
-        b = Board.Board(version, board)
-        print json.dumps(b,indent=2)
-        exit(1)
         
-        board_name = board + "_" + s.get_info()["Name"]
-        outdir_path = "./" + board_name + "/"
+        tinker = Tinker.Tinker(version=version,
+                               board=board,
+                               output=args.output_path)
 
-        # TODO: remove get_board_path call?
-        src_path = tinker.get_board_path(version, board)
+        b = Board.Board(tinker)
+        d = Description.Description(path, b)
+        
+        qsys = System.System(tinker, b, d)
+        top = Top.Top(tinker, b, d)
+        spec = Specification.Specification(tinker, b, d, False)
+        specification = Specification.Specification(tinker, b, d, True)
+        
+        skel_path = tinker.get_path_skel()
+        out_path = tinker.get_path_output(b, d)
         try:
-            shutil.copytree(src_path, outdir_path)
+            shutil.copytree(skel_path, out_path)
         except OSError:
-            System.exit("Error: Board Output Directory %s Exists!" % outdir_path);
+            sys.exit("Error: Board Output Directory %s Exists!" % tinker.get_name(b, d));
 
-        # Build Board Specification and Board Spec files
-        specification = b.build_spec(s, version, specification=True)
-        specification_fp = open(outdir_path + "board_specification.xml","w")
-        specification_fp.write(Tinker.prettify(specification))
-        specification_fp.close()
-        
-        spec = b.build_spec(s, version, specification=False)
-        spec_fp = open(outdir_path + "board_spec.xml","w")
-        spec_fp.write(Tinker.prettify(spec))
-        spec_fp.close()
-        
-        # Build System.qsys
-        sys = b.gen_system(s,outdir_path + "system.qsys")
-        sys_et = et.ElementTree(sys)
-        sys_et.write(outdir_path + "system.qsys", encoding="UTF-8", xml_declaration=True)
-        
-        # Move TCL Files
-        shutil.copytree(tinker.get_tcl_path(version), outdir_path + "/tcl/")
-        
-        # Generate Macro file
-        macros = b.gen_macros(s)
-        macro_fp = open(outdir_path + "tinker.vh", "w")
-        macro_fp.write(macros)
-        macro_fp.close()
-
-        print "Board %s generated" % board_name
+        shutil.copytree(tinker.get_path_tcl(), out_path + "/tcl/")
+        qsys.write(out_path)
+        spec.write(out_path)
+        specification.write(out_path)
+        top.write(out_path)
+        exit(1)
+                
+        print "Board %s generated" % Tinker.get_name(b, d)
         
 if __name__ == "__main__":
     main()
