@@ -33,7 +33,7 @@
 # DAMAGE.
 # ----------------------------------------------------------------------
 
-package require -exact qsys 15.1
+package require -exact qsys 16.0
 lappend auto_path $::env(TCLXML_PATH)
 package require xml
 
@@ -42,7 +42,7 @@ set_module_property NAME {tinker_kernel_clk}
 set_module_property DISPLAY_NAME {Tinker Altera OpenCL Kernel Clock}
 
 # default module properties
-set_module_property VERSION {15.1}
+set_module_property VERSION {16.0}
 set_module_property GROUP {Tinker}
 set_module_property DESCRIPTION {Default}
 set_module_property AUTHOR {Dustin Richmond}
@@ -67,7 +67,7 @@ set_parameter_property TARGET_CLK_RATE DESCRIPTION "This is the default constrai
 set_parameter_property TARGET_CLK_RATE HDL_PARAMETER true
 
 add_parameter QUARTUS_VERSION String "Altera OpenCL / Quartus Version"
-set_parameter_property QUARTUS_VERSION DEFAULT_VALUE "15.1"
+set_parameter_property QUARTUS_VERSION DEFAULT_VALUE "16.0"
 set_parameter_property QUARTUS_VERSION DISPLAY_NAME Quartus Version
 set_parameter_property QUARTUS_VERSION TYPE STRING
 set_parameter_property QUARTUS_VERSION UNITS None

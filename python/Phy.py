@@ -197,8 +197,8 @@ class Phy(Memory.Memory):
     
     def __get_pll_interface(self, sid, version, verbose):
         n = self.__get_name()
-        e = ET.Element("interface",attrib={"name":n + "_pll_ref",
-                                           "internal":"tinker." + n,
+        e = ET.Element("interface",attrib={"name":n + "_mem_pll_ref",
+                                           "internal":"tinker." + n + "_pll_ref",
                                            "type":"conduit", "dir":"end"})
         return e
     
@@ -206,8 +206,8 @@ class Phy(Memory.Memory):
         # TODO: Change naming in TCL files
         # TODO: OCT Pin macros
         n = self.__get_name()
-        e = ET.Element("interface",attrib={"name":n + "_oct", # TODO: Oct pin name
-                                           "internal":"tinker." + n,
+        e = ET.Element("interface",attrib={"name":n + "_mem_oct", # TODO: Oct pin name
+                                           "internal":"tinker." + n + "_oct",
                                            "type":"conduit", "dir":"end"})
         return e
         

@@ -78,8 +78,9 @@ proc compose { } {
     ############################################################################
     # Variable initialization
     ############################################################################
+    set type QDRII
     set symbol_width 8
-    set ddr_multiplier 2 
+    set data_rate 2 
     
     set board_path [get_parameter_value BOARD_PATH]
     set board_file $board_path/board_specification.xml
@@ -106,8 +107,8 @@ proc compose { } {
     set_parameter_property SYSTEM_IDENTIFIER ALLOWED_RANGES $sysids
     set sys_id [get_parameter_value SYSTEM_IDENTIFIER]
     
-    set dq_pins [[dom::selectNode $param_dom /board/memory\[@type="QDRII"\]/phy\[@id=\"$mem_id\"\]/@dq_pins] stringValue]
-    set address_pins [[dom::selectNode $param_dom /board/memory\[@type="QDRII"\]/phy\[@id=\"$mem_id\"\]/@address_pins] stringValue]
+    set dq_pins [[dom::selectNode $param_dom /board/IP/memory/$type/phy\[@id=\"$mem_id\"\]/@dq_pins] stringValue]
+    set address_pins [[dom::selectNode $param_dom /board/IP/memory/$type/phy\[@id=\"$mem_id\"\]/@address_pins] stringValue]
 
     # Memory-system specific variables
     set mem_clock_freq [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@mem_frequency_mhz] stringValue]
@@ -146,7 +147,7 @@ proc compose { } {
 	set pow2_dq_pins 32
     }
 
-    set fabric_data_width [expr $pow2_dq_pins * $fabric_mem_ratio * $ddr_multiplier]
+    set fabric_data_width [expr $pow2_dq_pins * $fabric_mem_ratio * $data_rate]
 
     ############################################################################
     # exported interfaces
@@ -629,9 +630,9 @@ proc compose { } {
     set_instance_parameter_value qdr {ED_EXPORT_SEQ_DEBUG} {0}
     set_instance_parameter_value qdr {ADD_EFFICIENCY_MONITOR} {0}
     # TODO: Read from XML File
-    foreach parameter [dom::selectNode $param_dom /board/memory\[@type="QDRII"\]/phy\[@id=\"$mem_id\"\]/parameter/@name] {
+    foreach parameter [dom::selectNode $param_dom /board/IP/memory/$type/phy\[@id=\"$mem_id\"\]/parameter/@name] {
 	set name [$parameter stringValue]
-	set value [[dom::selectNode $param_dom /board/memory\[@type="QDRII"\]/phy\[@id=\"$mem_id\"\]/parameter\[@name=\"$name\"\]/@value] stringValue]
+	set value [[dom::selectNode $param_dom /board/IP/memory/$type/phy\[@id=\"$mem_id\"\]/parameter\[@name=\"$name\"\]/@value] stringValue]
 	set_instance_parameter_value qdr $name $value
     }
 

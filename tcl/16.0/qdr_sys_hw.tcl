@@ -70,6 +70,7 @@ set_parameter_property MEMORY_SYS_ID HDL_PARAMETER true
 set_parameter_property MEMORY_SYS_ID ALLOWED_RANGES {0 1 2 3 4 5 6 7 8}
 
 proc compose { } {
+    set type QDRII
     set symbol_width 8
     set board_path [get_parameter_value BOARD_PATH]
     set board_file $board_path/board_specification.xml
@@ -162,24 +163,24 @@ proc compose { } {
 	set_interface_property if_$mem_id\_status EXPORT_OF if_$mem_id.status
 
 	if {$mem_id_role == "primary"} {
-	    add_interface qdrii_$mem_id\_pll_ref clock sink
-	    set_interface_property qdrii_$mem_id\_pll_ref EXPORT_OF if_$mem_id\.ref_clk
+	    add_interface $type\_$mem_id\_pll_ref clock sink
+	    set_interface_property $type\_$mem_id\_pll_ref EXPORT_OF if_$mem_id\.ref_clk
 
-	    add_interface qdrii_$mem_id\_oct conduit end
-	    set_interface_property qdrii_$mem_id\_oct EXPORT_OF if_$mem_id\.oct
+	    add_interface $type\_$mem_id\_oct conduit end
+	    set_interface_property $type\_$mem_id\_oct EXPORT_OF if_$mem_id\.oct
 	}
 
 	if {$mem_id_role == "independent"} {
 	    set shared_interfaces [split [[dom::selectNode $board_dom /board/global_mem\[@type="QDRII"\]/interface\[@id=\"$mem_id\"\]/@shared] stringValue] ","]
 	    
 	    if {!("pll" in $shared_interfaces)} {
-		add_interface qdrii_$mem_id\_pll_ref clock sink
-		set_interface_property qdrii_$mem_id\_pll_ref EXPORT_OF if_$mem_id\.ref_clk
+		add_interface $type\_$mem_id\_pll_ref clock sink
+		set_interface_property $type\_$mem_id\_pll_ref EXPORT_OF if_$mem_id\.ref_clk
 	    } 
 
 	    if {!("oct" in $shared_interfaces)} {
-		add_interface qdrii_$mem_id\_oct conduit end
-		set_interface_property qdrii_$mem_id\_oct EXPORT_OF if_$mem_id\.oct
+		add_interface $type\_$mem_id\_oct conduit end
+		set_interface_property $type\_$mem_id\_oct EXPORT_OF if_$mem_id\.oct
 	    }
 	}
     }

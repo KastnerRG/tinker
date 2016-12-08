@@ -163,14 +163,14 @@ proc compose { } {
     set_interface_property pcie_reconfig_to_xcvr EXPORT_OF pcie.reconfig_to_xcvr
 
     # DDR / QDR, Memory-system specific
-    # Conduit name is the concatentation of system type, and id (in lower case)
+    # Conduit name is the concatentation of system type, and id 
     foreach sys_id $system_ids {
 	if {$sys_id == $primary_id} {
-	    add_interface acl_internal_snoop avalon_streaming source
-	    set_interface_property acl_internal_snoop EXPORT_OF system_$sys_id.acl_internal_snoop
+	    add_interface acl_internal_snoop_$sys_id avalon_streaming source
+	    set_interface_property acl_internal_snoop_$sys_id EXPORT_OF system_$sys_id.acl_internal_snoop
 	}
 
-	set if_type [string tolower [dict get $mem_dict $sys_id type]]
+	set if_type [dict get $mem_dict $sys_id type]
 	foreach if_id [dict get $mem_dict $sys_id interfaces] {
 
 	    # Export Physical Pins
@@ -839,12 +839,12 @@ proc compose { } {
     set_instance_parameter_value dma {BURST_SIZE} {16}
 
     foreach sys_id $system_ids {
-	set if_type [string tolower [dict get $mem_dict $sys_id type]]
-	if {[string match $if_type "qdrii"]} {
+	set if_type [dict get $mem_dict $sys_id type]
+	if {[string match $if_type "QDRII"]} {
 	    add_instance system_$sys_id qdr_system $bsp_version
 	    set_instance_parameter_value system_$sys_id {BOARD_PATH} $bsp_path
 	    set_instance_parameter_value system_$sys_id {MEMORY_SYS_ID} $sys_id
-	} elseif {[string match $if_type "ddr3"]} {
+	} elseif {[string match $if_type "DDR3"]} {
 	    add_instance system_$sys_id ddr_system $bsp_version
 	    set_instance_parameter_value system_$sys_id {BOARD_PATH} $bsp_path
 	    set_instance_parameter_value system_$sys_id {MEMORY_SYS_ID} $sys_id

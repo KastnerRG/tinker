@@ -78,8 +78,9 @@ proc compose { } {
     ############################################################################
     # Variable initialization
     ############################################################################
+    set type DDR3
     set symbol_width 8
-    set ddr_multiplier 2
+    set data_rate 2
     
     set board_path [get_parameter_value BOARD_PATH]
     set board_file $board_path/board_specification.xml
@@ -113,10 +114,10 @@ proc compose { } {
     set fabric_ratio [[dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@id=\"$mem_id\"\]/@ratio] stringValue]
 
     # Memory-specific parameters
-    set bank_pins [[dom::selectNode $param_dom /board/memory\[@type="DDR3"\]/phy\[@id=\"$mem_id\"\]/@bank_pins] stringValue]
-    set row_pins [[dom::selectNode $param_dom /board/memory\[@type="DDR3"\]/phy\[@id=\"$mem_id\"\]/@row_pins] stringValue]
-    set col_pins [[dom::selectNode $param_dom /board/memory\[@type="DDR3"\]/phy\[@id=\"$mem_id\"\]/@column_pins] stringValue]
-    set dq_pins [[dom::selectNode $param_dom /board/memory\[@type="DDR3"\]/phy\[@id=\"$mem_id\"\]/@dq_pins] stringValue]
+    set bank_pins [[dom::selectNode $param_dom /board/IP/memory/$type/phy\[@id=\"$mem_id\"\]/@bank_pins] stringValue]
+    set row_pins [[dom::selectNode $param_dom /board/IP/memory/$type/phy\[@id=\"$mem_id\"\]/@row_pins] stringValue]
+    set col_pins [[dom::selectNode $param_dom /board/IP/memory/$type/phy\[@id=\"$mem_id\"\]/@column_pins] stringValue]
+    set dq_pins [[dom::selectNode $param_dom /board/IP/memory/$type/phy\[@id=\"$mem_id\"\]/@dq_pins] stringValue]
     set addr_width [expr log($dq_pins/$symbol_width)/log(2) + $bank_pins + $row_pins + $col_pins]
 
     set shared_nodes [dom::selectNode $board_dom /board/global_mem\[@sys_id=\"$sys_id\"\]/interface\[@primary=\"$mem_id\"\]/@id]
@@ -141,7 +142,7 @@ proc compose { } {
     }
     
     # DDR returns data at twice the rate of the clock
-    set fabric_data_width [expr $dq_pins * $fabric_mem_ratio * $ddr_multiplier]
+    set fabric_data_width [expr $dq_pins * $fabric_mem_ratio * $data_rate]
     ############################################################################
     # exported interfaces
     ############################################################################
@@ -715,9 +716,9 @@ proc compose { } {
     set_instance_parameter_value ddr3 {ENABLE_ABS_RAM_MEM_INIT} {0}
     set_instance_parameter_value ddr3 {ABS_RAM_MEM_INIT_FILENAME} {meminit}
     # TODO: Read from XML File
-    foreach parameter [dom::selectNode $param_dom /board/memory\[@type="DDR3"\]/phy\[@id=\"$mem_id\"\]/parameter/@name] {
+    foreach parameter [dom::selectNode $param_dom /board/IP/memory/$type/phy\[@id=\"$mem_id\"\]/parameter/@name] {
 	set name [$parameter stringValue]
-	set value [[dom::selectNode $param_dom /board/memory\[@type="DDR3"\]/phy\[@id=\"$mem_id\"\]/parameter\[@name=\"$name\"\]/@value] stringValue]
+	set value [[dom::selectNode $param_dom /board/IP/memory/$type/phy\[@id=\"$mem_id\"\]/parameter\[@name=\"$name\"\]/@value] stringValue]
 	set_instance_parameter_value ddr3 $name $value
     }
 
